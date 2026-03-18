@@ -57,7 +57,7 @@ export async function generateExcel(invoice: Invoice, lineItems: LineItem[]): Pr
   if (invoice.client_address) addDetail('Address:', invoice.client_address);
   sheet.addRow([]);
   // --- Line Items Table Header ---
-  const headerRow = sheet.addRow(['Service Description', 'Hours', 'Rate ($)', 'Amount ($)']);
+  const headerRow = sheet.addRow(['Service Description', 'Hours', 'Rate (₹)', 'Amount (₹)']);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1A2E' } };
@@ -78,7 +78,7 @@ export async function generateExcel(invoice: Invoice, lineItems: LineItem[]): Pr
     row.eachCell((cell, colNumber) => {
       cell.font = { size: 10, color: { argb: 'FF333333' } };
       if (colNumber >= 3) {
-        cell.numFmt = '$#,##0.00';
+        cell.numFmt = '"₹"#,##0.00';
         cell.alignment = { horizontal: 'right' };
       }
       if (colNumber === 2) {
@@ -96,7 +96,7 @@ export async function generateExcel(invoice: Invoice, lineItems: LineItem[]): Pr
     row.getCell(3).font = { bold: isBold, size: isBold ? 12 : 10, color: { argb: 'FF1A1A2E' } };
     row.getCell(3).alignment = { horizontal: 'right' };
     row.getCell(4).font = { bold: isBold, size: isBold ? 12 : 10, color: { argb: 'FF1A1A2E' } };
-    row.getCell(4).numFmt = '$#,##0.00';
+    row.getCell(4).numFmt = '"₹"#,##0.00';
     row.getCell(4).alignment = { horizontal: 'right' };
   };
   addTotal('Subtotal:', invoice.subtotal);

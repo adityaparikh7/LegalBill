@@ -189,8 +189,8 @@ export default function InvoiceForm() {
             <div className="line-item-header">
               <span>Description</span>
               <span>Hours</span>
-              <span>Rate ($)</span>
-              <span>Amount ($)</span>
+              <span>Rate (₹)</span>
+              <span>Amount (₹)</span>
               <span></span>
             </div>
             {lineItems.map((item, idx) => (
@@ -230,7 +230,7 @@ export default function InvoiceForm() {
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <input
                     className="form-input"
-                    value={`$${calculateAmount(item).toFixed(2)}`}
+                    value={`₹${calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     disabled
                     style={{ background: 'rgba(79, 142, 255, 0.05)', fontWeight: 600 }}
                   />
@@ -251,7 +251,7 @@ export default function InvoiceForm() {
           <div className="invoice-totals">
             <div className="total-row">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="total-row" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span>Tax</span>
@@ -266,11 +266,11 @@ export default function InvoiceForm() {
                 style={{ width: 70, padding: '4px 8px', textAlign: 'center' }}
               />
               <span>%</span>
-              <span style={{ marginLeft: 'auto' }}>${taxAmount.toFixed(2)}</span>
+              <span style={{ marginLeft: 'auto' }}>₹{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="total-row grand-total">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>

@@ -95,8 +95,8 @@ export function generatePDF(invoice: Invoice, lineItems: LineItem[]): Promise<Bu
         doc.fillColor('#333');
         doc.text(item.description, 60, yPos + 6, { width: 230 });
         doc.text(item.hours > 0 ? item.hours.toString() : '-', 300, yPos + 6, { width: 60, align: 'center' });
-        doc.text(`$${item.rate.toFixed(2)}`, 365, yPos + 6, { width: 80, align: 'right' });
-        doc.text(`$${item.amount.toFixed(2)}`, 455, yPos + 6, { width: 85, align: 'right' });
+        doc.text(`₹${item.rate.toFixed(2)}`, 365, yPos + 6, { width: 80, align: 'right' });
+        doc.text(`₹${item.amount.toFixed(2)}`, 455, yPos + 6, { width: 85, align: 'right' });
         yPos += 22;
       });
       // Table bottom border
@@ -106,18 +106,18 @@ export function generatePDF(invoice: Invoice, lineItems: LineItem[]): Promise<Bu
       const totalsX = 380;
       doc.fontSize(10).font('Helvetica').fillColor('#333');
       doc.text('Subtotal:', totalsX, yPos, { width: 80, align: 'right' });
-      doc.text(`$${invoice.subtotal.toFixed(2)}`, 470, yPos, { width: 70, align: 'right' });
+      doc.text(`₹${invoice.subtotal.toFixed(2)}`, 470, yPos, { width: 70, align: 'right' });
       yPos += 18;
       if (invoice.tax_rate > 0) {
         doc.text(`Tax (${invoice.tax_rate}%):`, totalsX, yPos, { width: 80, align: 'right' });
-        doc.text(`$${invoice.tax_amount.toFixed(2)}`, 470, yPos, { width: 70, align: 'right' });
+        doc.text(`₹${invoice.tax_amount.toFixed(2)}`, 470, yPos, { width: 70, align: 'right' });
         yPos += 18;
       }
       doc.moveTo(totalsX, yPos).lineTo(550, yPos).strokeColor('#e0e0e0').lineWidth(0.5).stroke();
       yPos += 8;
       doc.fontSize(13).font('Helvetica-Bold').fillColor('#1a1a2e');
       doc.text('Total:', totalsX, yPos, { width: 80, align: 'right' });
-      doc.text(`$${invoice.total.toFixed(2)}`, 470, yPos, { width: 70, align: 'right' });
+      doc.text(`₹${invoice.total.toFixed(2)}`, 470, yPos, { width: 70, align: 'right' });
       yPos += 30;
       // --- Notes ---
       if (invoice.notes) {

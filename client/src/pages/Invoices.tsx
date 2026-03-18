@@ -131,7 +131,7 @@ export default function Invoices() {
                   <td>{inv.client_name}</td>
                   <td>{inv.date}</td>
                   <td>{inv.due_date || '—'}</td>
-                  <td style={{ fontWeight: 600 }}>${inv.total.toFixed(2)}</td>
+                  <td style={{ fontWeight: 600 }}>₹{inv.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td>
                     <select
                       className="form-select"

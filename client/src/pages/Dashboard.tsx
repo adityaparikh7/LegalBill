@@ -46,12 +46,12 @@ export default function Dashboard() {
       <div className="stats-grid">
         <div className="stat-card blue">
           <div className="stat-icon">💰</div>
-          <div className="stat-value">${stats?.total_paid?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}</div>
+          <div className="stat-value">₹{stats?.total_paid?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}</div>
           <div className="stat-label">Total Received</div>
         </div>
         <div className="stat-card amber">
           <div className="stat-icon">📋</div>
-          <div className="stat-value">${stats?.total_outstanding?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}</div>
+          <div className="stat-value">₹{stats?.total_outstanding?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}</div>
           <div className="stat-label">Outstanding</div>
         </div>
         <div className="stat-card red">
@@ -110,7 +110,7 @@ export default function Dashboard() {
                   <td style={{ fontWeight: 600, color: 'var(--accent-blue)' }}>{inv.invoice_number}</td>
                   <td>{inv.client_name}</td>
                   <td>{inv.date}</td>
-                  <td style={{ fontWeight: 600 }}>${inv.total.toFixed(2)}</td>
+                  <td style={{ fontWeight: 600 }}>₹{inv.total.toFixed(2)}</td>
                   <td><span className={`badge ${inv.status}`}>{inv.status}</span></td>
                   <td>
                     <div className="btn-group">

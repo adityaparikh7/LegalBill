@@ -37,12 +37,12 @@ export async function sendInvoiceEmail(
   const info = await transporter.sendMail({
     from: `"Legal Billing" <${fromAddress}>`,
     to: invoice.client_email,
-    subject: `Invoice ${invoice.invoice_number} - $${invoice.total.toFixed(2)}`,
+    subject: `Invoice ${invoice.invoice_number} - ₹${invoice.total.toFixed(2)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1a1a2e;">Invoice ${invoice.invoice_number}</h2>
         <p>Dear ${invoice.client_name},</p>
-        <p>Please find attached your invoice for <strong>$${invoice.total.toFixed(2)}</strong>.</p>
+        <p>Please find attached your invoice for <strong>₹${invoice.total.toFixed(2)}</strong>.</p>
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
           <tr>
             <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Invoice Number</td>
@@ -60,7 +60,7 @@ export async function sendInvoiceEmail(
           ` : ''}
           <tr>
             <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Amount Due</td>
-            <td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 18px; color: #1a1a2e; font-weight: bold;">$${invoice.total.toFixed(2)}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 18px; color: #1a1a2e; font-weight: bold;">₹${invoice.total.toFixed(2)}</td>
           </tr>
         </table>
         <p>Thank you for your business.</p>
@@ -87,7 +87,7 @@ export async function sendReminderEmail(
   const info = await transporter.sendMail({
     from: `"Legal Billing" <${fromAddress}>`,
     to: invoice.client_email,
-    subject: `Payment Reminder: Invoice ${invoice.invoice_number} - $${invoice.total.toFixed(2)}`,
+    subject: `Payment Reminder: Invoice ${invoice.invoice_number} - ₹${invoice.total.toFixed(2)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #dc3545;">Payment Reminder</h2>
@@ -110,7 +110,7 @@ export async function sendReminderEmail(
           ` : ''}
           <tr>
             <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Amount Due</td>
-            <td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 18px; color: #dc3545; font-weight: bold;">$${invoice.total.toFixed(2)}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 18px; color: #dc3545; font-weight: bold;">₹${invoice.total.toFixed(2)}</td>
           </tr>
         </table>
         <p>Please arrange payment at your earliest convenience. If you have already made the payment, please disregard this reminder.</p>
