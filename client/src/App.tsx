@@ -40,8 +40,7 @@ function App() {
             <div className="sidebar-header">
               <div className="sidebar-logo">
                 <div className="logo-icon">⚖️</div>
-                {/* <div className="logo-icon">⚖</div> */}
-                <span className="logo-text">LegalBill</span>
+                <span className="logo-text">LexLedger</span>
               </div>
             </div>
             <nav className="sidebar-nav">
