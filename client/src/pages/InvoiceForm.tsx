@@ -92,6 +92,7 @@ export default function InvoiceForm() {
     try {
       const payload = {
         client_id: Number(clientId),
+        invoice_number: isEditing ? invoiceNumber : undefined,
         date,
         due_date: dueDate || null,
         notes: notes || null,
@@ -137,6 +138,18 @@ export default function InvoiceForm() {
         <div className="card" style={{ marginBottom: 24 }}>
           <h3 style={{ marginBottom: 20, fontSize: 16, fontWeight: 600 }}>Invoice Details</h3>
           <div className="form-row">
+            {isEditing && (
+              <div className="form-group">
+                <label className="form-label">Invoice Number *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={invoiceNumber}
+                  onChange={e => setInvoiceNumber(e.target.value)}
+                  required
+                />
+              </div>
+            )}
             <div className="form-group">
               <label className="form-label">Client *</label>
               <select
@@ -150,9 +163,9 @@ export default function InvoiceForm() {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              {clients.length === 0 && (
+              {(
                 <p style={{ marginTop: 8, fontSize: 12, color: 'var(--accent-amber)' }}>
-                  No clients found. <span style={{ cursor: 'pointer', color: 'var(--accent-blue)' }} onClick={() => navigate('/clients')}>Add a client first →</span>
+                  <span style={{ cursor: 'pointer', color: 'var(--accent-blue)' }} onClick={() => navigate('/clients')}>Add a new client? →</span>
                 </p>
               )}
             </div>

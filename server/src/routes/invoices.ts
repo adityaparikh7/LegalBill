@@ -69,8 +69,8 @@ router.post('/', (req: Request, res: Response) => {
     const { client_id, date, due_date, notes, tax_rate, line_items } = req.body;
     if (!client_id) return res.status(400).json({ error: 'Client is required' });
     if (!line_items || line_items.length === 0) return res.status(400).json({ error: 'At least one service/line item is required' });
-    const invoiceNumber = generateInvoiceNumber();
     const invoiceDate = date || new Date().toISOString().split('T')[0];
+    const invoiceNumber = generateInvoiceNumber(invoiceDate);
     const taxRate = tax_rate || 0;
     // Calculate totals
     let subtotal = 0;
@@ -118,7 +118,7 @@ router.put('/:id', (req: Request, res: Response) => {
     const existing = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
     if (!existing) return res.status(404).json({ error: 'Invoice not found' });
     if (existing.status === 'paid') return res.status(400).json({ error: 'Cannot edit a paid invoice' });
-    const { client_id, date, due_date, notes, tax_rate, line_items } = req.body;
+    const { client_id, invoice_number, date, due_date, notes, tax_rate, line_items, created_at } = req.body;
     const taxRate = tax_rate ?? existing.tax_rate;
     let subtotal = 0;
     if (line_items) {
@@ -134,15 +134,17 @@ router.put('/:id', (req: Request, res: Response) => {
     const total = subtotal + taxAmount;
     const transaction = db.transaction(() => {
       db.prepare(`
-        UPDATE invoices SET client_id = ?, date = ?, due_date = ?, notes = ?,
-        subtotal = ?, tax_rate = ?, tax_amount = ?, total = ?, updated_at = datetime('now')
+        UPDATE invoices SET client_id = ?, invoice_number = ?, date = ?, due_date = ?, notes = ?,
+        subtotal = ?, tax_rate = ?, tax_amount = ?, total = ?, created_at = ?, updated_at = datetime('now')
         WHERE id = ?
       `).run(
         client_id || existing.client_id,
+        invoice_number || existing.invoice_number,
         date || existing.date,
         due_date ?? existing.due_date,
         notes ?? existing.notes,
         subtotal, taxRate, taxAmount, total,
+        created_at || existing.created_at,
         req.params.id
       );
       if (line_items) {
@@ -208,7 +210,8 @@ router.get('/:id/pdf', async (req: Request, res: Response) => {
     // Generate PDF
     const pdfBuffer = await generatePDF(invoice, lineItems);
     // Save redundant copy
-    const fileName = `${invoice.invoice_number}_${Date.now()}.pdf`;
+    const safeInvoiceNumber = invoice.invoice_number.replace(/[\/\\]/g, '-');
+    const fileName = `${safeInvoiceNumber}_${Date.now()}.pdf`;
     const filePath = path.join(COPIES_DIR, fileName);
     fs.writeFileSync(filePath, pdfBuffer);
     db.prepare(
@@ -233,7 +236,8 @@ router.get('/:id/excel', async (req: Request, res: Response) => {
     const lineItems = db.prepare('SELECT * FROM line_items WHERE invoice_id = ?').all(req.params.id) as any[];
     const excelBuffer = await generateExcel(invoice, lineItems);
     // Save redundant copy
-    const fileName = `${invoice.invoice_number}_${Date.now()}.xlsx`;
+    const safeInvoiceNumber = invoice.invoice_number.replace(/[\/\\]/g, '-');
+    const fileName = `${safeInvoiceNumber}_${Date.now()}.xlsx`;
     const filePath = path.join(COPIES_DIR, fileName);
     fs.writeFileSync(filePath, excelBuffer);
     db.prepare(
