@@ -88,7 +88,7 @@ export default function Invoices() {
           <p className="page-subtitle">{invoices.length} total invoices</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/invoices/new')}>
-          ➕ New Invoice
+          + New Invoice
         </button>
       </div>
       {/* Filter bar */}
