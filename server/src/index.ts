@@ -25,6 +25,6 @@ app.get('*', (_req, res) => {
 // Initialize DB and start server
 initDatabase();
 app.listen(PORT, () => {
-  console.log(`🚀 LegalBill server running on http://localhost:${PORT}`);
+  console.log(`🚀 LexLedger server running on http://localhost:${PORT}`);
 });
 export default app;
