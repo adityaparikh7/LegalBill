@@ -6,6 +6,11 @@ interface Invoice {
   client_name: string;
   client_email: string | null;
   client_address: string | null;
+  case_name: string | null;
+  case_party1_type: string | null;
+  case_plaintiff: string | null;
+  case_party2_type: string | null;
+  case_defendant: string | null;
   subtotal: number;
   tax_rate: number;
   tax_amount: number;
@@ -56,6 +61,15 @@ export async function generateExcel(invoice: Invoice, lineItems: LineItem[]): Pr
   if (invoice.client_email) addDetail('Email:', invoice.client_email);
   if (invoice.client_address) addDetail('Address:', invoice.client_address);
   sheet.addRow([]);
+  // --- Case Details ---
+  if (invoice.case_name || invoice.case_plaintiff || invoice.case_defendant) {
+    const caseHeader = sheet.addRow(['Case Details']);
+    caseHeader.getCell(1).font = { size: 11, bold: true, color: { argb: 'FF1A1A2E' } };
+    if (invoice.case_name) addDetail('Case:', invoice.case_name);
+    if (invoice.case_plaintiff) addDetail(`${invoice.case_party1_type || 'Plaintiff'}(s):`, invoice.case_plaintiff);
+    if (invoice.case_defendant) addDetail(`${invoice.case_party2_type || 'Defendant'}(s):`, invoice.case_defendant);
+    sheet.addRow([]);
+  }
   // --- Line Items Table Header ---
   const headerRow = sheet.addRow(['Service Description', 'Hours', 'Rate (₹)', 'Amount (₹)']);
   headerRow.eachCell((cell) => {

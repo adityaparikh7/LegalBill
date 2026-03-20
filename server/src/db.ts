@@ -35,6 +35,11 @@ export function initDatabase(): void {
       due_date TEXT,
       status TEXT DEFAULT 'draft' CHECK(status IN ('draft','sent','paid','overdue','cancelled')),
       notes TEXT,
+      case_name TEXT,
+      case_party1_type TEXT,
+      case_plaintiff TEXT,
+      case_party2_type TEXT,
+      case_defendant TEXT,
       subtotal REAL DEFAULT 0,
       tax_rate REAL DEFAULT 0,
       tax_amount REAL DEFAULT 0,
@@ -64,6 +69,16 @@ export function initDatabase(): void {
       FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
     );
   `);
+
+  // Migration: add case detail columns to existing databases
+  const migrationColumns = ['case_name', 'case_party1_type', 'case_plaintiff', 'case_party2_type', 'case_defendant'];
+  for (const col of migrationColumns) {
+    try {
+      db.exec(`ALTER TABLE invoices ADD COLUMN ${col} TEXT`);
+    } catch (_) {
+      // Column already exists — ignore
+    }
+  }
 }
 
 export function generateInvoiceNumber(invoiceDateStr?: string): string {

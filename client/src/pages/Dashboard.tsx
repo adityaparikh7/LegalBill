@@ -46,7 +46,7 @@ export default function Dashboard() {
           <p className="page-subtitle">Overview of your billing activity</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/invoices/new')}>
-          ➕ New Invoice
+          + New Invoice
         </button>
       </div>
       {/* Stats Grid */}

@@ -7,6 +7,11 @@ interface Invoice {
   client_email: string | null;
   client_address: string | null;
   client_phone: string | null;
+  case_name: string | null;
+  case_party1_type: string | null;
+  case_plaintiff: string | null;
+  case_party2_type: string | null;
+  case_defendant: string | null;
   subtotal: number;
   tax_rate: number;
   tax_amount: number;
@@ -30,9 +35,9 @@ export function generatePDF(invoice: Invoice, lineItems: LineItem[]): Promise<Bu
       doc.on('error', reject);
       // --- Header ---
       doc.fontSize(24).font('Helvetica-Bold').fillColor('#1a1a2e')
-        .text('INVOICE', 50, 50);
+        .text('Advocate Sandeep H. Parikh ', 50, 50);
       doc.fontSize(10).font('Helvetica').fillColor('#666')
-        .text('Legal Billing Services', 50, 80);
+        .text('11/E, Examiner Press Building, Dalal Street, Fort, Mumbai - 400 001. (M) +91 9820122460, E-mail : adv.sparikh@gmail.com', 50, 80);
       // Invoice details (right side)
       doc.fontSize(10).font('Helvetica-Bold').fillColor('#1a1a2e')
         .text('Invoice Number:', 350, 50, { width: 200, align: 'right' });
@@ -50,7 +55,7 @@ export function generatePDF(invoice: Invoice, lineItems: LineItem[]): Promise<Bu
       }
       // Status badge
       const statusColors: Record<string, string> = {
-        draft: '#6c757d', sent: '#0d6efd', paid: '#198754', overdue: '#dc3545', cancelled: '#6c757d'
+        draft: '#6c757d', sent: '#0d6efd', paid: '#00ad5c', overdue: '#dc3545', cancelled: '#dc3545'
       };
       const badgeColor = statusColors[invoice.status] || '#6c757d';
       doc.fontSize(9).font('Helvetica-Bold').fillColor(badgeColor)
@@ -78,6 +83,31 @@ export function generatePDF(invoice: Invoice, lineItems: LineItem[]): Promise<Bu
         yPos += 15;
       }
       yPos += 15;
+      // --- Case Details ---
+      if (invoice.case_name || invoice.case_plaintiff || invoice.case_defendant) {
+        doc.fontSize(11).font('Helvetica-Bold').fillColor('#1a1a2e')
+          .text('Case Details:', 50, yPos);
+        yPos += 18;
+        doc.fontSize(10).font('Helvetica').fillColor('#333');
+        if (invoice.case_name) {
+          doc.font('Helvetica-Bold').text('Case: ', 50, yPos, { continued: true })
+            .font('Helvetica').text(invoice.case_name);
+          yPos += 15;
+        }
+        if (invoice.case_plaintiff) {
+          const party1Label = `${invoice.case_party1_type || 'Plaintiff'}(s): `;
+          doc.font('Helvetica-Bold').text(party1Label, 50, yPos, { continued: true })
+            .font('Helvetica').text(invoice.case_plaintiff);
+          yPos += 15;
+        }
+        if (invoice.case_defendant) {
+          const party2Label = `${invoice.case_party2_type || 'Defendant'}(s): `;
+          doc.font('Helvetica-Bold').text(party2Label, 50, yPos, { continued: true })
+            .font('Helvetica').text(invoice.case_defendant);
+          yPos += 15;
+        }
+        yPos += 5;
+      }
       // --- Line Items Table ---
       // Table header
       doc.rect(50, yPos, 500, 25).fill('#1a1a2e');
