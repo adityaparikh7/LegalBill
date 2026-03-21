@@ -41,16 +41,26 @@ export async function generatePDF(invoice: any, lineItems: any[]): Promise<Buffe
     )
     .join('');
 
+  // Build case parties html
+  let casePartiesHtml = '';
+  const hasParty1 = invoice.case_party1_type && invoice.case_party1_type !== 'None';
+  const hasParty2 = invoice.case_party2_type && invoice.case_party2_type !== 'None';
+
+  if (hasParty1 && hasParty2) {
+    casePartiesHtml = `${invoice.case_plaintiff ?? ''} …${invoice.case_party1_type}<br/>vs<br/>${invoice.case_defendant ?? ''} …${invoice.case_party2_type}<br/>`;
+  } else if (hasParty1) {
+    casePartiesHtml = `${invoice.case_plaintiff ?? ''} …${invoice.case_party1_type}<br/>`;
+  } else if (hasParty2) {
+    casePartiesHtml = `${invoice.case_defendant ?? ''} …${invoice.case_party2_type}<br/>`;
+  }
+
   // Replace placeholders
   html = html
     .replace('{{client_name}}', invoice.client_name ?? '')
     .replace('{{invoice_number}}', invoice.invoice_number ?? '')
     .replace('{{date}}', formatDate(invoice.date))
     .replace('{{case_name}}', invoice.case_name ?? '')
-    .replace('{{case_plaintiff}}', invoice.case_plaintiff ?? '')
-    .replace('{{party1}}', invoice.case_party1_type ?? 'Plaintiff')
-    .replace('{{case_defendant}}', invoice.case_defendant ?? '')
-    .replace('{{party2}}', invoice.case_party2_type ?? 'Defendant')
+    .replace('{{case_parties}}', casePartiesHtml)
     .replace('{{line_items}}', lineItemsHtml)
     .replace('{{total}}', formatINR(invoice.total ?? 0));
 

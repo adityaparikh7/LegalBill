@@ -46,11 +46,12 @@
       text-align: center;
       margin: 20px 0;
       line-height: 1.6;
+      font-size: 14px;
     }
 
     .case_name {
       font-weight: bold;
-      font-size: 18px;
+      font-size: 20px;
       margin-bottom: 15px;
     }
 
@@ -129,9 +130,7 @@
 
   <div class="case">
     <div class="case_name">{{case_name}}</div>
-    {{case_plaintiff}} …{{party1}}<br/>
-    vs<br/>
-    {{case_defendant}} …{{party2}}<br/>
+    {{case_parties}}
   </div>
 
   

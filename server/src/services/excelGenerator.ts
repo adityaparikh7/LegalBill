@@ -106,20 +106,26 @@ export async function generateExcel(invoice: Invoice, lineItems: LineItem[]): Pr
   sheet.addRow([]);
 
   // ── CASE BLOCK ──
-  const hasCase = invoice.case_name || invoice.case_plaintiff || invoice.case_defendant;
+  const hasCase = invoice.case_name || invoice.case_party1_type || invoice.case_party2_type;
   if (hasCase) {
     if (invoice.case_name) {
       const rCaseName = addRow([invoice.case_name, null, null], boldFont, { horizontal: 'center' });
       merge(rCaseName.number);
     }
-    if (invoice.case_plaintiff) {
-      const rP1 = addRow([`${invoice.case_plaintiff}   …${invoice.case_party1_type ?? 'Plaintiff'}`, null, null], undefined, { horizontal: 'center' });
+    
+    const hasParty1 = invoice.case_party1_type && invoice.case_party1_type !== 'None';
+    const hasParty2 = invoice.case_party2_type && invoice.case_party2_type !== 'None';
+
+    if (hasParty1) {
+      const rP1 = addRow([`${invoice.case_plaintiff || ''}   …${invoice.case_party1_type}`, null, null], undefined, { horizontal: 'center' });
       merge(rP1.number);
     }
-    const rVs = addRow(['vs', null, null], undefined, { horizontal: 'center' });
-    merge(rVs.number);
-    if (invoice.case_defendant) {
-      const rP2 = addRow([`${invoice.case_defendant}   …${invoice.case_party2_type ?? 'Defendant'}`, null, null], undefined, { horizontal: 'center' });
+    if (hasParty1 && hasParty2) {
+      const rVs = addRow(['vs', null, null], undefined, { horizontal: 'center' });
+      merge(rVs.number);
+    }
+    if (hasParty2) {
+      const rP2 = addRow([`${invoice.case_defendant || ''}   …${invoice.case_party2_type}`, null, null], undefined, { horizontal: 'center' });
       merge(rP2.number);
     }
     sheet.addRow([]);

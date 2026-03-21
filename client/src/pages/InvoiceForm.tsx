@@ -55,9 +55,9 @@ export default function InvoiceForm() {
           setTaxRate(String(invoice.tax_rate));
           setInvoiceNumber(invoice.invoice_number);
           setCaseName(invoice.case_name || '');
-          setCaseParty1Type(invoice.case_party1_type || 'Plaintiff');
+          setCaseParty1Type(invoice.case_party1_type || 'None');
           setCasePlaintiff(invoice.case_plaintiff || '');
-          setCaseParty2Type(invoice.case_party2_type || 'Defendant');
+          setCaseParty2Type(invoice.case_party2_type || 'None');
           setCaseDefendant(invoice.case_defendant || '');
           if (invoice.line_items && invoice.line_items.length > 0) {
             setLineItems(invoice.line_items.map((li: LineItem) => ({
@@ -146,10 +146,10 @@ export default function InvoiceForm() {
         due_date: dueDate || null,
         notes: notes || null,
         case_name: caseName || null,
-        case_party1_type: caseParty1Type || null,
-        case_plaintiff: casePlaintiff || null,
-        case_party2_type: caseParty2Type || null,
-        case_defendant: caseDefendant || null,
+        case_party1_type: caseParty1Type === 'None' ? null : (caseParty1Type || null),
+        case_plaintiff: caseParty1Type === 'None' ? null : (casePlaintiff || null),
+        case_party2_type: caseParty2Type === 'None' ? null : (caseParty2Type || null),
+        case_defendant: caseParty2Type === 'None' ? null : (caseDefendant || null),
         tax_rate: parseFloat(taxRate) || 0,
         line_items: validItems.map(li => ({
           description: li.description,
@@ -179,18 +179,26 @@ export default function InvoiceForm() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">{isEditing ? 'Edit Invoice' : 'New Invoice'}</h1>
+          <h1 className="page-title">
+            {isEditing ? "Edit Invoice" : "New Invoice"}
+          </h1>
           <p className="page-subtitle">
-            {invoiceNumber ? `Invoice: ${invoiceNumber}` : 'Invoice number will be auto-generated'}
+            {invoiceNumber
+              ? `Invoice: ${invoiceNumber}`
+              : "Invoice number will be auto-generated"}
           </p>
         </div>
-        <button className="btn btn-outline" onClick={() => navigate('/invoices')}>
+        <button
+          className="btn btn-outline"
+          onClick={() => navigate("/invoices")}>
           ← Back to Invoices
         </button>
       </div>
       <form onSubmit={handleSubmit}>
         <div className="card" style={{ marginBottom: 24 }}>
-          <h3 style={{ marginBottom: 20, fontSize: 16, fontWeight: 600 }}>Invoice Details</h3>
+          <h3 style={{ marginBottom: 20, fontSize: 16, fontWeight: 600 }}>
+            Invoice Details
+          </h3>
           <div className="form-row">
             {isEditing && (
               <div className="form-group">
@@ -199,7 +207,7 @@ export default function InvoiceForm() {
                   type="text"
                   className="form-input"
                   value={invoiceNumber}
-                  onChange={e => setInvoiceNumber(e.target.value)}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
                   required
                 />
               </div>
@@ -209,19 +217,29 @@ export default function InvoiceForm() {
               <select
                 className="form-select"
                 value={clientId}
-                onChange={e => setClientId(e.target.value)}
-                required
-              >
+                onChange={(e) => setClientId(e.target.value)}
+                required>
                 <option value="">Select a client...</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
-              {(
-                <p style={{ marginTop: 8, fontSize: 12, color: 'var(--accent-amber)' }}>
-                  <span style={{ cursor: 'pointer', color: 'var(--accent-blue)' }} onClick={() => setShowClientModal(true)}>Add a new client? →</span>
+              {
+                <p
+                  style={{
+                    marginTop: 8,
+                    fontSize: 12,
+                    color: "var(--accent-amber)",
+                  }}>
+                  <span
+                    style={{ cursor: "pointer", color: "var(--accent-blue)" }}
+                    onClick={() => setShowClientModal(true)}>
+                    Add a new client? →
+                  </span>
                 </p>
-              )}
+              }
             </div>
             <div className="form-group">
               <label className="form-label">Date *</label>
@@ -229,7 +247,7 @@ export default function InvoiceForm() {
                 type="date"
                 className="form-input"
                 value={date}
-                onChange={e => setDate(e.target.value)}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
             </div>
@@ -239,14 +257,16 @@ export default function InvoiceForm() {
                 type="date"
                 className="form-input"
                 value={dueDate}
-                onChange={e => setDueDate(e.target.value)}
+                onChange={(e) => setDueDate(e.target.value)}
               />
             </div>
           </div>
         </div>
         {/* Case Details */}
         <div className="card" style={{ marginBottom: 24 }}>
-          <h3 style={{ marginBottom: 20, fontSize: 16, fontWeight: 600 }}>Case Details</h3>
+          <h3 style={{ marginBottom: 20, fontSize: 16, fontWeight: 600 }}>
+            Case Details
+          </h3>
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Case Name / Title</label>
@@ -255,7 +275,7 @@ export default function InvoiceForm() {
                 className="form-input"
                 placeholder="e.g. Smith vs. Johnson"
                 value={caseName}
-                onChange={e => setCaseName(e.target.value)}
+                onChange={(e) => setCaseName(e.target.value)}
               />
             </div>
           </div>
@@ -265,24 +285,26 @@ export default function InvoiceForm() {
               <select
                 className="form-select"
                 value={caseParty1Type}
-                onChange={e => setCaseParty1Type(e.target.value)}
-              >
+                onChange={(e) => setCaseParty1Type(e.target.value)}>
+                <option value="None">None</option>
                 <option value="Plaintiff">Plaintiff</option>
                 <option value="Appellant">Appellant</option>
                 <option value="Applicant">Applicant</option>
                 <option value="Petitioner">Petitioner</option>
               </select>
             </div>
-            <div className="form-group" style={{ flex: 2 }}>
-              <label className="form-label">{caseParty1Type} Details</label>
-              <textarea
-                className="form-textarea"
-                placeholder={`Name(s) and details of the ${caseParty1Type.toLowerCase()}(s)...`}
-                value={casePlaintiff}
-                onChange={e => setCasePlaintiff(e.target.value)}
-                rows={2}
-              />
-            </div>
+            {caseParty1Type !== 'None' && (
+              <div className="form-group" style={{ flex: 2 }}>
+                <label className="form-label">{caseParty1Type} Details</label>
+                <textarea
+                  className="form-textarea"
+                  placeholder={`Name(s) and details of the ${caseParty1Type.toLowerCase()}(s)...`}
+                  value={casePlaintiff}
+                  onChange={(e) => setCasePlaintiff(e.target.value)}
+                  rows={2}
+                />
+              </div>
+            )}
           </div>
           <div className="form-row">
             <div className="form-group">
@@ -290,29 +312,42 @@ export default function InvoiceForm() {
               <select
                 className="form-select"
                 value={caseParty2Type}
-                onChange={e => setCaseParty2Type(e.target.value)}
-              >
+                onChange={(e) => setCaseParty2Type(e.target.value)}>
+                <option value="None">None</option>
                 <option value="Defendant">Defendant</option>
                 <option value="Respondent">Respondent</option>
               </select>
             </div>
-            <div className="form-group" style={{ flex: 2 }}>
-              <label className="form-label">{caseParty2Type} Details</label>
-              <textarea
-                className="form-textarea"
-                placeholder={`Name(s) and details of the ${caseParty2Type.toLowerCase()}(s)...`}
-                value={caseDefendant}
-                onChange={e => setCaseDefendant(e.target.value)}
-                rows={2}
-              />
-            </div>
+            {caseParty2Type !== 'None' && (
+              <div className="form-group" style={{ flex: 2 }}>
+                <label className="form-label">{caseParty2Type} Details</label>
+                <textarea
+                  className="form-textarea"
+                  placeholder={`Name(s) and details of the ${caseParty2Type.toLowerCase()}(s)...`}
+                  value={caseDefendant}
+                  onChange={(e) => setCaseDefendant(e.target.value)}
+                  rows={2}
+                />
+              </div>
+            )}
           </div>
         </div>
         {/* Line Items */}
         <div className="card" style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600 }}>Services Performed</h3>
-            <button type="button" className="btn btn-outline btn-sm" onClick={addLineItem}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600 }}>
+              Services Performed
+            </h3>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={addLineItem}>
               + Add Service
             </button>
           </div>
@@ -331,7 +366,9 @@ export default function InvoiceForm() {
                     className="form-input"
                     placeholder="Service description..."
                     value={item.description}
-                    onChange={e => updateLineItem(idx, 'description', e.target.value)}
+                    onChange={(e) =>
+                      updateLineItem(idx, "description", e.target.value)
+                    }
                     required
                   />
                 </div>
@@ -341,7 +378,9 @@ export default function InvoiceForm() {
                     className="form-input"
                     placeholder="0"
                     value={item.hours}
-                    onChange={e => updateLineItem(idx, 'hours', e.target.value)}
+                    onChange={(e) =>
+                      updateLineItem(idx, "hours", e.target.value)
+                    }
                     min="0"
                     step="0.5"
                   />
@@ -352,7 +391,9 @@ export default function InvoiceForm() {
                     className="form-input"
                     placeholder="0.00"
                     value={item.rate}
-                    onChange={e => updateLineItem(idx, 'rate', e.target.value)}
+                    onChange={(e) =>
+                      updateLineItem(idx, "rate", e.target.value)
+                    }
                     min="0"
                     step="0.01"
                     required
@@ -361,18 +402,20 @@ export default function InvoiceForm() {
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <input
                     className="form-input"
-                    value={`₹${calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    value={`₹${calculateAmount(item).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     disabled
-                    style={{ background: 'rgba(79, 142, 255, 0.05)', fontWeight: 600 }}
+                    style={{
+                      background: "rgba(79, 142, 255, 0.05)",
+                      fontWeight: 600,
+                    }}
                   />
                 </div>
                 <button
                   type="button"
                   className="btn-icon"
                   onClick={() => removeLineItem(idx)}
-                  style={{ color: 'var(--accent-red)', alignSelf: 'center' }}
-                  title="Remove"
-                >
+                  style={{ color: "var(--accent-red)", alignSelf: "center" }}
+                  title="Remove">
                   ✕
                 </button>
               </div>
@@ -382,26 +425,46 @@ export default function InvoiceForm() {
           <div className="invoice-totals">
             <div className="total-row">
               <span>Subtotal</span>
-              <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span>
+                ₹
+                {subtotal.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
             </div>
-            <div className="total-row" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div
+              className="total-row"
+              style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span>Tax</span>
               <input
                 type="number"
                 className="form-input"
                 value={taxRate}
-                onChange={e => setTaxRate(e.target.value)}
+                onChange={(e) => setTaxRate(e.target.value)}
                 min="0"
                 max="100"
                 step="0.5"
-                style={{ width: 70, padding: '4px 8px', textAlign: 'center' }}
+                style={{ width: 70, padding: "4px 8px", textAlign: "center" }}
               />
               <span>%</span>
-              <span style={{ marginLeft: 'auto' }}>₹{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span style={{ marginLeft: "auto" }}>
+                ₹
+                {taxAmount.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
             </div>
             <div className="total-row grand-total">
               <span>Total</span>
-              <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span>
+                ₹
+                {total.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
             </div>
           </div>
         </div>
@@ -413,29 +476,42 @@ export default function InvoiceForm() {
               className="form-textarea"
               placeholder="Payment terms, notes, or special instructions..."
               value={notes}
-              onChange={e => setNotes(e.target.value)}
+              onChange={(e) => setNotes(e.target.value)}
               rows={3}
             />
           </div>
         </div>
         {/* Submit */}
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-          <button type="button" className="btn btn-outline" onClick={() => navigate('/invoices')}>
+        <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => navigate("/invoices")}>
             Cancel
           </button>
           <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? '⏳ Saving...' : isEditing ? '💾 Update Invoice' : '✅ Create Invoice'}
+            {saving
+              ? "⏳ Saving..."
+              : isEditing
+                ? "💾 Update Invoice"
+                : "✅ Create Invoice"}
           </button>
         </div>
       </form>
 
       {/* Add Client Modal */}
       {showClientModal && (
-        <div className="modal-overlay" onClick={() => setShowClientModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowClientModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Add Client</h3>
-              <button className="btn-icon" onClick={() => setShowClientModal(false)}>✕</button>
+              <button
+                className="btn-icon"
+                onClick={() => setShowClientModal(false)}>
+                ✕
+              </button>
             </div>
             <form onSubmit={handleCreateClient}>
               <div className="form-group">
@@ -444,7 +520,7 @@ export default function InvoiceForm() {
                   className="form-input"
                   placeholder="Client name..."
                   value={newClientName}
-                  onChange={e => setNewClientName(e.target.value)}
+                  onChange={(e) => setNewClientName(e.target.value)}
                   required
                   autoFocus
                 />
@@ -456,7 +532,7 @@ export default function InvoiceForm() {
                   className="form-input"
                   placeholder="client@example.com"
                   value={newClientEmail}
-                  onChange={e => setNewClientEmail(e.target.value)}
+                  onChange={(e) => setNewClientEmail(e.target.value)}
                 />
               </div>
               <div className="form-group">
@@ -465,7 +541,7 @@ export default function InvoiceForm() {
                   className="form-input"
                   placeholder="+1 (555) 123-4567"
                   value={newClientPhone}
-                  onChange={e => setNewClientPhone(e.target.value)}
+                  onChange={(e) => setNewClientPhone(e.target.value)}
                 />
               </div>
               <div className="form-group">
@@ -474,16 +550,27 @@ export default function InvoiceForm() {
                   className="form-textarea"
                   placeholder="Client address..."
                   value={newClientAddress}
-                  onChange={e => setNewClientAddress(e.target.value)}
+                  onChange={(e) => setNewClientAddress(e.target.value)}
                   rows={2}
                 />
               </div>
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setShowClientModal(false)}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  justifyContent: "flex-end",
+                }}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setShowClientModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={creatingClient}>
-                  {creatingClient ? '⏳ Saving...' : '+ Add Client'}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={creatingClient}>
+                  {creatingClient ? "⏳ Saving..." : "+ Add Client"}
                 </button>
               </div>
             </form>
