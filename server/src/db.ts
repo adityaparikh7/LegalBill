@@ -70,6 +70,16 @@ export function initDatabase(): void {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      amount_received REAL DEFAULT 0,
+      tds_amount REAL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    );
   `);
 
   // Migration: add case detail columns to existing databases
@@ -98,6 +108,19 @@ export function initDatabase(): void {
       // Column already exists — ignore
     }
   }
+
+  // Migration: create payments table if not exists (for existing databases)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      amount_received REAL DEFAULT 0,
+      tds_amount REAL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    );
+  `);
 }
 
 export function generateInvoiceNumber(invoiceDateStr?: string): string {

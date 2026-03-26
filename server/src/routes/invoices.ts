@@ -17,6 +17,35 @@ interface LineItem {
   rate: number;
   amount: number;
 }
+interface PaymentEntry {
+  id?: number;
+  date: string;
+  amount_received: number;
+  tds_amount: number;
+}
+
+// Helper: sync invoice aggregate payment fields from payments table
+function syncInvoicePaymentAggregates(invoiceId: number | string) {
+  const payments = db.prepare('SELECT * FROM payments WHERE invoice_id = ?').all(invoiceId) as any[];
+  const totalReceived = payments.reduce((sum: number, p: any) => sum + (p.amount_received || 0), 0);
+  const totalTds = payments.reduce((sum: number, p: any) => sum + (p.tds_amount || 0), 0);
+  const latestPayment = payments.length > 0 ? payments.sort((a: any, b: any) => b.date.localeCompare(a.date))[0] : null;
+  db.prepare(
+    "UPDATE invoices SET amount_received = ?, tds_amount = ?, date_paid = ?, updated_at = datetime('now') WHERE id = ?"
+  ).run(totalReceived, totalTds, latestPayment ? latestPayment.date : null, invoiceId);
+}
+
+// Helper: replace all payments for an invoice
+function replacePayments(invoiceId: number | string, payments: PaymentEntry[]) {
+  db.prepare('DELETE FROM payments WHERE invoice_id = ?').run(invoiceId);
+  const insertPayment = db.prepare(
+    'INSERT INTO payments (invoice_id, date, amount_received, tds_amount) VALUES (?, ?, ?, ?)'
+  );
+  for (const p of payments) {
+    insertPayment.run(invoiceId, p.date, p.amount_received || 0, p.tds_amount || 0);
+  }
+  syncInvoicePaymentAggregates(invoiceId);
+}
 // GET all invoices
 router.get('/', (req: Request, res: Response) => {
   try {
@@ -58,7 +87,8 @@ router.get('/:id', (req: Request, res: Response) => {
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
     const lineItems = db.prepare('SELECT * FROM line_items WHERE invoice_id = ?').all(req.params.id);
     const copies = db.prepare('SELECT * FROM invoice_copies WHERE invoice_id = ? ORDER BY created_at DESC').all(req.params.id);
-    res.json({ ...invoice, line_items: lineItems, copies });
+    const payments = db.prepare('SELECT * FROM payments WHERE invoice_id = ? ORDER BY date ASC').all(req.params.id);
+    res.json({ ...invoice, line_items: lineItems, copies, payments });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -66,7 +96,7 @@ router.get('/:id', (req: Request, res: Response) => {
 // POST create invoice
 router.post('/', (req: Request, res: Response) => {
   try {
-    const { client_id, date, date_paid, notes, tax_rate, line_items, case_name, case_party1_type, case_plaintiff, case_party2_type, case_defendant, amount_received, tds_amount } = req.body;
+    const { client_id, date, date_paid, notes, tax_rate, line_items, case_name, case_party1_type, case_plaintiff, case_party2_type, case_defendant, amount_received, tds_amount, payments } = req.body;
     if (!client_id) return res.status(400).json({ error: 'Client is required' });
     if (!line_items || line_items.length === 0) return res.status(400).json({ error: 'At least one service/line item is required' });
     const invoiceDate = date || new Date().toISOString().split('T')[0];
@@ -101,6 +131,9 @@ router.post('/', (req: Request, res: Response) => {
       for (const item of line_items as LineItem[]) {
         insertLineItem.run(invoiceId, item.description, item.hours || 0, item.rate || 0, item.amount);
       }
+      if (payments && payments.length > 0) {
+        replacePayments(invoiceId as number, payments);
+      }
       return invoiceId;
     });
     const invoiceId = transaction();
@@ -120,7 +153,7 @@ router.put('/:id', (req: Request, res: Response) => {
   try {
     const existing = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
     if (!existing) return res.status(404).json({ error: 'Invoice not found' });
-    const { client_id, invoice_number, date, date_paid, notes, tax_rate, line_items, created_at, case_name, case_party1_type, case_plaintiff, case_party2_type, case_defendant, amount_received, tds_amount } = req.body;
+    const { client_id, invoice_number, date, date_paid, notes, tax_rate, line_items, created_at, case_name, case_party1_type, case_plaintiff, case_party2_type, case_defendant, amount_received, tds_amount, payments } = req.body;
     const taxRate = tax_rate ?? existing.tax_rate;
     let subtotal = 0;
     if (line_items) {
@@ -167,6 +200,9 @@ router.put('/:id', (req: Request, res: Response) => {
           insertLineItem.run(req.params.id, item.description, item.hours || 0, item.rate || 0, item.amount);
         }
       }
+      if (payments && Array.isArray(payments)) {
+        replacePayments(req.params.id, payments);
+      }
     });
     transaction();
     const invoice = db.prepare(`
@@ -183,25 +219,46 @@ router.put('/:id', (req: Request, res: Response) => {
 // PATCH update status
 router.patch('/:id/status', (req: Request, res: Response) => {
   try {
-    const { status, date_paid, amount_received, tds_amount } = req.body;
+    const { status, payments: paymentEntries } = req.body;
     const validStatuses = ['draft', 'sent', 'paid', 'overdue', 'cancelled'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
     }
-    if (status === 'paid' && date_paid != null) {
-      // When marking as paid with payment details
-      const result = db.prepare(
-        "UPDATE invoices SET status = ?, date_paid = ?, amount_received = ?, tds_amount = ?, updated_at = datetime('now') WHERE id = ?"
-      ).run(status, date_paid, amount_received || 0, tds_amount || 0, req.params.id);
-      if (result.changes === 0) return res.status(404).json({ error: 'Invoice not found' });
-    } else {
-      const result = db.prepare(
+    const existing = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Invoice not found' });
+
+    const transaction = db.transaction(() => {
+      db.prepare(
         "UPDATE invoices SET status = ?, updated_at = datetime('now') WHERE id = ?"
       ).run(status, req.params.id);
-      if (result.changes === 0) return res.status(404).json({ error: 'Invoice not found' });
-    }
+      if (paymentEntries && Array.isArray(paymentEntries) && paymentEntries.length > 0) {
+        replacePayments(req.params.id, paymentEntries);
+      }
+    });
+    transaction();
     const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id);
-    res.json(invoice);
+    const paymentsResult = db.prepare('SELECT * FROM payments WHERE invoice_id = ? ORDER BY date ASC').all(req.params.id);
+    res.json({ ...(invoice as any), payments: paymentsResult });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// PUT update payments for an invoice
+router.put('/:id/payments', (req: Request, res: Response) => {
+  try {
+    const existing = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Invoice not found' });
+    const { payments: paymentEntries } = req.body;
+    if (!paymentEntries || !Array.isArray(paymentEntries)) {
+      return res.status(400).json({ error: 'payments array is required' });
+    }
+    const transaction = db.transaction(() => {
+      replacePayments(req.params.id, paymentEntries);
+    });
+    transaction();
+    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id);
+    const paymentsResult = db.prepare('SELECT * FROM payments WHERE invoice_id = ? ORDER BY date ASC').all(req.params.id);
+    res.json({ ...(invoice as any), payments: paymentsResult });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -3,9 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import {
   getInvoices, deleteInvoice, updateInvoiceStatus,
   downloadPDF, downloadExcel, sendInvoice, sendReminder,
-  type Invoice
+  type Invoice, type Payment
 } from '../api';
 import { useToast } from '../App';
+
+interface FormPayment {
+  date: string;
+  amount_received: string;
+  tds_amount: string;
+}
+
 export default function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,8 +23,7 @@ export default function Invoices() {
 
   // Payment modal state
   const [paymentModal, setPaymentModal] = useState<{ open: boolean; invoice: Invoice | null }>({ open: false, invoice: null });
-  const [paymentDatePaid, setPaymentDatePaid] = useState('');
-  const [paymentAmountReceived, setPaymentAmountReceived] = useState('');
+  const [paymentEntries, setPaymentEntries] = useState<FormPayment[]>([]);
   const [submittingPayment, setSubmittingPayment] = useState(false);
 
   const fetchInvoices = async () => {
@@ -43,10 +49,12 @@ export default function Invoices() {
   };
   const handleStatusChange = async (inv: Invoice, newStatus: string) => {
     if (newStatus === 'paid') {
-      // Open payment modal instead of immediately changing status
       setPaymentModal({ open: true, invoice: inv });
-      setPaymentDatePaid(new Date().toISOString().split('T')[0]);
-      setPaymentAmountReceived(String(inv.total));
+      setPaymentEntries([{
+        date: new Date().toISOString().split('T')[0],
+        amount_received: String(inv.total),
+        tds_amount: '0',
+      }]);
       return;
     }
     try {
@@ -58,18 +66,51 @@ export default function Invoices() {
     }
   };
 
+  const addPaymentEntry = () => {
+    setPaymentEntries([...paymentEntries, {
+      date: new Date().toISOString().split('T')[0],
+      amount_received: '',
+      tds_amount: '',
+    }]);
+  };
+
+  const removePaymentEntry = (index: number) => {
+    if (paymentEntries.length === 1) return;
+    setPaymentEntries(paymentEntries.filter((_, i) => i !== index));
+  };
+
+  const updatePaymentEntry = (index: number, field: keyof FormPayment, value: string) => {
+    const updated = [...paymentEntries];
+    updated[index] = { ...updated[index], [field]: value };
+    // Auto-calculate TDS when amount_received changes (only if TDS hasn't been manually edited)
+    if (field === 'amount_received' && paymentModal.invoice) {
+      const received = parseFloat(value) || 0;
+      const invoiceTotal = paymentModal.invoice.total;
+      const otherReceived = updated.reduce((sum, p, i) => i !== index ? sum + (parseFloat(p.amount_received) || 0) : sum, 0);
+      const otherTds = updated.reduce((sum, p, i) => i !== index ? sum + (parseFloat(p.tds_amount) || 0) : sum, 0);
+      const remaining = invoiceTotal - otherReceived - otherTds - received;
+      updated[index].tds_amount = String(Math.max(0, remaining));
+    }
+    setPaymentEntries(updated);
+  };
+
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!paymentModal.invoice) return;
-    const amountReceived = parseFloat(paymentAmountReceived) || 0;
-    const tdsAmount = paymentModal.invoice.total - amountReceived;
+    const payments: Payment[] = paymentEntries
+      .filter(p => parseFloat(p.amount_received) > 0 || parseFloat(p.tds_amount) > 0)
+      .map(p => ({
+        date: p.date,
+        amount_received: parseFloat(p.amount_received) || 0,
+        tds_amount: parseFloat(p.tds_amount) || 0,
+      }));
+    if (payments.length === 0) {
+      addToast('Please enter at least one payment', 'error');
+      return;
+    }
     setSubmittingPayment(true);
     try {
-      await updateInvoiceStatus(paymentModal.invoice.id, 'paid', {
-        date_paid: paymentDatePaid,
-        amount_received: amountReceived,
-        tds_amount: tdsAmount,
-      });
+      await updateInvoiceStatus(paymentModal.invoice.id, 'paid', payments);
       addToast('Invoice marked as paid', 'success');
       setPaymentModal({ open: false, invoice: null });
       fetchInvoices();
@@ -117,8 +158,11 @@ export default function Invoices() {
     inv.client_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const tdsAmount = paymentModal.invoice
-    ? paymentModal.invoice.total - (parseFloat(paymentAmountReceived) || 0)
+  // Payment modal summary calculations
+  const modalTotalReceived = paymentEntries.reduce((sum, p) => sum + (parseFloat(p.amount_received) || 0), 0);
+  const modalTotalTds = paymentEntries.reduce((sum, p) => sum + (parseFloat(p.tds_amount) || 0), 0);
+  const modalRemaining = paymentModal.invoice
+    ? paymentModal.invoice.total - modalTotalReceived - modalTotalTds
     : 0;
 
   if (loading) {
@@ -170,12 +214,15 @@ export default function Invoices() {
                 <th>Amount</th>
                 <th>Received</th>
                 <th>TDS</th>
+                <th>Balance</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(inv => (
+              {filtered.map(inv => {
+                const balance = inv.total - (inv.amount_received || 0) - (inv.tds_amount || 0);
+                return (
                 <tr key={inv.id}>
                   <td style={{ fontWeight: 600, color: 'var(--accent-blue)', cursor: 'pointer' }}
                       onClick={() => navigate(`/invoices/${inv.id}/edit`)}>
@@ -187,6 +234,12 @@ export default function Invoices() {
                   <td style={{ fontWeight: 600 }}>{formatCurrency(inv.total)}</td>
                   <td>{inv.amount_received ? formatCurrency(inv.amount_received) : '—'}</td>
                   <td>{inv.tds_amount ? formatCurrency(inv.tds_amount) : '—'}</td>
+                  <td style={{
+                    fontWeight: 600,
+                    color: balance > 0.01 ? 'var(--accent-red)' : 'var(--accent-green, #2E5E4E)',
+                  }}>
+                    {inv.amount_received || inv.tds_amount ? formatCurrency(balance) : '—'}
+                  </td>
                   <td>
                     <select
                       className="form-select"
@@ -214,7 +267,8 @@ export default function Invoices() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         ) : (
@@ -231,7 +285,7 @@ export default function Invoices() {
       {/* Payment Details Modal */}
       {paymentModal.open && paymentModal.invoice && (
         <div className="modal-overlay" onClick={() => setPaymentModal({ open: false, invoice: null })}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
             <div className="modal-header">
               <h3 className="modal-title">Payment Details</h3>
               <button
@@ -244,47 +298,110 @@ export default function Invoices() {
               Invoice <strong>{paymentModal.invoice.invoice_number}</strong> — Total: <strong>{formatCurrency(paymentModal.invoice.total)}</strong>
             </p>
             <form onSubmit={handlePaymentSubmit}>
-              <div className="form-group">
-                <label className="form-label">Date Paid *</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={paymentDatePaid}
-                  onChange={(e) => setPaymentDatePaid(e.target.value)}
-                  required
-                  autoFocus
-                />
+              {/* Payment entries */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Payment Entries
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={addPaymentEntry}
+                    style={{ fontSize: 11, padding: '4px 10px' }}>
+                    + Add Payment
+                  </button>
+                </div>
+                {paymentEntries.map((entry, idx) => (
+                  <div key={idx} style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr auto',
+                    gap: 8,
+                    marginBottom: 8,
+                    padding: 12,
+                    borderRadius: 8,
+                    background: 'var(--bg-tertiary, rgba(0,0,0,0.03))',
+                  }}>
+                    <div>
+                      {idx === 0 && <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Date</label>}
+                      <input
+                        type="date"
+                        className="form-input"
+                        value={entry.date}
+                        onChange={(e) => updatePaymentEntry(idx, 'date', e.target.value)}
+                        required
+                        style={{ fontSize: 13, padding: '6px 8px' }}
+                      />
+                    </div>
+                    <div>
+                      {idx === 0 && <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Amount Received (₹)</label>}
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="0.00"
+                        value={entry.amount_received}
+                        onChange={(e) => updatePaymentEntry(idx, 'amount_received', e.target.value)}
+                        min="0"
+                        step="0.01"
+                        required
+                        style={{ fontSize: 13, padding: '6px 8px' }}
+                      />
+                    </div>
+                    <div>
+                      {idx === 0 && <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>TDS Amount (₹)</label>}
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="0.00"
+                        value={entry.tds_amount}
+                        onChange={(e) => updatePaymentEntry(idx, 'tds_amount', e.target.value)}
+                        min="0"
+                        step="0.01"
+                        style={{ fontSize: 13, padding: '6px 8px' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                      {paymentEntries.length > 1 && (
+                        <button
+                          type="button"
+                          className="btn-icon"
+                          onClick={() => removePaymentEntry(idx)}
+                          style={{ color: 'var(--accent-red)', padding: 4 }}
+                          title="Remove">
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="form-group">
-                <label className="form-label">Amount Received (₹) *</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  placeholder="0.00"
-                  value={paymentAmountReceived}
-                  onChange={(e) => setPaymentAmountReceived(e.target.value)}
-                  min="0"
-                  step="0.01"
-                  required
-                />
+
+              {/* Summary */}
+              <div style={{
+                padding: 12,
+                borderRadius: 8,
+                background: 'var(--bg-tertiary, rgba(0,0,0,0.03))',
+                marginBottom: 16,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                  <span>Total Received</span>
+                  <span style={{ fontWeight: 600 }}>{formatCurrency(modalTotalReceived)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                  <span>Total TDS</span>
+                  <span style={{ fontWeight: 600, color: 'var(--accent-amber)' }}>{formatCurrency(modalTotalTds)}</span>
+                </div>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', fontSize: 14,
+                  fontWeight: 700, paddingTop: 6, borderTop: '1px solid var(--border-color, #ddd)',
+                  color: modalRemaining > 0.01 ? 'var(--accent-red)' : 'var(--accent-green, #2E5E4E)',
+                }}>
+                  <span>Remaining Balance</span>
+                  <span>{formatCurrency(modalRemaining)}</span>
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">TDS Amount (₹)</label>
-                <input
-                  className="form-input"
-                  value={formatCurrency(tdsAmount)}
-                  disabled
-                  style={{
-                    background: 'rgba(79, 142, 255, 0.05)',
-                    fontWeight: 600,
-                    color: tdsAmount > 0 ? 'var(--accent-amber)' : 'var(--text-primary)',
-                  }}
-                />
-                <p style={{ marginTop: 4, fontSize: 11, color: 'var(--text-secondary)' }}>
-                  Auto-calculated: Total ({formatCurrency(paymentModal.invoice.total)}) − Amount Received
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 20 }}>
+
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
                 <button
                   type="button"
                   className="btn btn-outline"

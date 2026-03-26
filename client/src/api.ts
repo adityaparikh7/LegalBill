@@ -14,6 +14,12 @@ export interface LineItem {
   rate: number;
   amount: number;
 }
+export interface Payment {
+  id?: number;
+  date: string;
+  amount_received: number;
+  tds_amount: number;
+}
 export interface Invoice {
   id: number;
   invoice_number: string;
@@ -38,6 +44,7 @@ export interface Invoice {
   amount_received: number;
   tds_amount: number;
   line_items?: LineItem[];
+  payments?: Payment[];
   copies?: InvoiceCopy[];
   created_at: string;
   updated_at: string;
@@ -109,8 +116,10 @@ export const updateInvoice = (id: number, data: any): Promise<Invoice> =>
   request(`/invoices/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteInvoice = (id: number): Promise<void> =>
   request(`/invoices/${id}`, { method: 'DELETE' });
-export const updateInvoiceStatus = (id: number, status: string, paymentDetails?: { date_paid?: string; amount_received?: number; tds_amount?: number }): Promise<Invoice> =>
-  request(`/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status, ...paymentDetails }) });
+export const updateInvoiceStatus = (id: number, status: string, payments?: Payment[]): Promise<Invoice> =>
+  request(`/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status, payments }) });
+export const updateInvoicePayments = (id: number, payments: Payment[]): Promise<Invoice> =>
+  request(`/invoices/${id}/payments`, { method: 'PUT', body: JSON.stringify({ payments }) });
 // Downloads
 export const downloadPDF = async (id: number, invoiceNumber: string) => {
   const blob = await request(`/invoices/${id}/pdf`);
