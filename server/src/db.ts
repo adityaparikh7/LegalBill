@@ -32,7 +32,7 @@ export function initDatabase(): void {
       invoice_number TEXT UNIQUE NOT NULL,
       client_id INTEGER NOT NULL,
       date TEXT NOT NULL,
-      due_date TEXT,
+      date_paid TEXT,
       status TEXT DEFAULT 'draft' CHECK(status IN ('draft','sent','paid','overdue','cancelled')),
       notes TEXT,
       case_name TEXT,
@@ -44,6 +44,8 @@ export function initDatabase(): void {
       tax_rate REAL DEFAULT 0,
       tax_amount REAL DEFAULT 0,
       total REAL DEFAULT 0,
+      amount_received REAL DEFAULT 0,
+      tds_amount REAL DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE RESTRICT
@@ -68,6 +70,16 @@ export function initDatabase(): void {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      amount_received REAL DEFAULT 0,
+      tds_amount REAL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    );
   `);
 
   // Migration: add case detail columns to existing databases
@@ -79,6 +91,36 @@ export function initDatabase(): void {
       // Column already exists — ignore
     }
   }
+
+  // Migration: rename due_date to date_paid
+  try {
+    db.exec(`ALTER TABLE invoices RENAME COLUMN due_date TO date_paid`);
+  } catch (_) {
+    // Column might already be renamed or doesn't exist — ignore
+  }
+
+  // Migration: add TDS payment columns
+  const tdsColumns = ['amount_received', 'tds_amount'];
+  for (const col of tdsColumns) {
+    try {
+      db.exec(`ALTER TABLE invoices ADD COLUMN ${col} REAL DEFAULT 0`);
+    } catch (_) {
+      // Column already exists — ignore
+    }
+  }
+
+  // Migration: create payments table if not exists (for existing databases)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      amount_received REAL DEFAULT 0,
+      tds_amount REAL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    );
+  `);
 }
 
 export function generateInvoiceNumber(invoiceDateStr?: string): string {

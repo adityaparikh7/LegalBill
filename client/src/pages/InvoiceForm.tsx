@@ -10,6 +10,11 @@ interface FormLineItem {
   hours: string;
   rate: string;
 }
+interface FormPayment {
+  date: string;
+  amount_received: string;
+  tds_amount: string;
+}
 export default function InvoiceForm() {
   const { id } = useParams();
   const isEditing = !!id;
@@ -20,7 +25,7 @@ export default function InvoiceForm() {
   const [saving, setSaving] = useState(false);
   const [clientId, setClientId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dueDate, setDueDate] = useState('');
+  const [datePaid, setDatePaid] = useState('');
   const [notes, setNotes] = useState('');
   const [taxRate, setTaxRate] = useState('0');
   const [caseName, setCaseName] = useState('');
@@ -32,6 +37,7 @@ export default function InvoiceForm() {
     { description: '', hours: '', rate: '' }
   ]);
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [payments, setPayments] = useState<FormPayment[]>([]);
 
   // Client Modal State
   const [showClientModal, setShowClientModal] = useState(false);
@@ -50,7 +56,7 @@ export default function InvoiceForm() {
           const invoice = await getInvoice(Number(id));
           setClientId(String(invoice.client_id));
           setDate(invoice.date);
-          setDueDate(invoice.due_date || '');
+          setDatePaid(invoice.date_paid || '');
           setNotes(invoice.notes || '');
           setTaxRate(String(invoice.tax_rate));
           setInvoiceNumber(invoice.invoice_number);
@@ -64,6 +70,13 @@ export default function InvoiceForm() {
               description: li.description,
               hours: String(li.hours || ''),
               rate: String(li.rate || ''),
+            })));
+          }
+          if (invoice.payments && invoice.payments.length > 0) {
+            setPayments(invoice.payments.map((p: any) => ({
+              date: p.date || '',
+              amount_received: String(p.amount_received || ''),
+              tds_amount: String(p.tds_amount || ''),
             })));
           }
         }
@@ -96,6 +109,39 @@ export default function InvoiceForm() {
   const subtotal = lineItems.reduce((sum, item) => sum + calculateAmount(item), 0);
   const taxAmount = subtotal * (parseFloat(taxRate) || 0) / 100;
   const total = subtotal + taxAmount;
+
+  // Payment calculations
+  const totalReceived = payments.reduce((sum, p) => sum + (parseFloat(p.amount_received) || 0), 0);
+  const totalTds = payments.reduce((sum, p) => sum + (parseFloat(p.tds_amount) || 0), 0);
+  const remainingBalance = total - totalReceived - totalTds;
+
+  const addPayment = () => {
+    setPayments([...payments, {
+      date: new Date().toISOString().split('T')[0],
+      amount_received: '',
+      tds_amount: '',
+    }]);
+  };
+  const removePayment = (index: number) => {
+    if (payments.length <= 1) {
+      setPayments([]);
+      return;
+    }
+    setPayments(payments.filter((_, i) => i !== index));
+  };
+  const updatePayment = (index: number, field: keyof FormPayment, value: string) => {
+    const updated = [...payments];
+    updated[index] = { ...updated[index], [field]: value };
+    // Auto-calculate TDS when amount_received changes
+    if (field === 'amount_received') {
+      const received = parseFloat(value) || 0;
+      const otherReceived = updated.reduce((sum, p, i) => i !== index ? sum + (parseFloat(p.amount_received) || 0) : sum, 0);
+      const otherTds = updated.reduce((sum, p, i) => i !== index ? sum + (parseFloat(p.tds_amount) || 0) : sum, 0);
+      const remaining = total - otherReceived - otherTds - received;
+      updated[index].tds_amount = String(Math.max(0, remaining));
+    }
+    setPayments(updated);
+  };
 
   const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +189,7 @@ export default function InvoiceForm() {
         client_id: Number(clientId),
         invoice_number: isEditing ? invoiceNumber : undefined,
         date,
-        due_date: dueDate || null,
+        date_paid: datePaid || null,
         notes: notes || null,
         case_name: caseName || null,
         case_party1_type: caseParty1Type === 'None' ? null : (caseParty1Type || null),
@@ -157,6 +203,13 @@ export default function InvoiceForm() {
           rate: parseFloat(li.rate) || 0,
           amount: calculateAmount(li),
         })),
+        payments: payments
+          .filter(p => parseFloat(p.amount_received) > 0 || parseFloat(p.tds_amount) > 0)
+          .map(p => ({
+            date: p.date,
+            amount_received: parseFloat(p.amount_received) || 0,
+            tds_amount: parseFloat(p.tds_amount) || 0,
+          })),
       };
       if (isEditing) {
         await updateInvoice(Number(id), payload);
@@ -252,12 +305,12 @@ export default function InvoiceForm() {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Due Date</label>
+              <label className="form-label">Date Paid</label>
               <input
                 type="date"
                 className="form-input"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
+                value={datePaid}
+                onChange={(e) => setDatePaid(e.target.value)}
               />
             </div>
           </div>
@@ -468,6 +521,113 @@ export default function InvoiceForm() {
             </div>
           </div>
         </div>
+        {/* Payment Details */}
+        {isEditing && (
+          <div className="card" style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 600 }}>
+                💰 Payment Details
+              </h3>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={addPayment}>
+                + Add Payment
+              </button>
+            </div>
+            {payments.length > 0 ? (
+              <>
+                <div style={{ marginBottom: 16 }}>
+                  {payments.map((entry, idx) => (
+                    <div key={idx} style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 1fr auto',
+                      gap: 8,
+                      marginBottom: 8,
+                      padding: 12,
+                      borderRadius: 8,
+                      background: 'var(--bg-tertiary, rgba(0,0,0,0.03))',
+                    }}>
+                      <div>
+                        {idx === 0 && <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Date</label>}
+                        <input
+                          type="date"
+                          className="form-input"
+                          value={entry.date}
+                          onChange={(e) => updatePayment(idx, 'date', e.target.value)}
+                          style={{ fontSize: 13, padding: '6px 8px' }}
+                        />
+                      </div>
+                      <div>
+                        {idx === 0 && <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Amount Received (₹)</label>}
+                        <input
+                          type="number"
+                          className="form-input"
+                          placeholder="0.00"
+                          value={entry.amount_received}
+                          onChange={(e) => updatePayment(idx, 'amount_received', e.target.value)}
+                          min="0"
+                          step="0.01"
+                          style={{ fontSize: 13, padding: '6px 8px' }}
+                        />
+                      </div>
+                      <div>
+                        {idx === 0 && <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>TDS Amount (₹)</label>}
+                        <input
+                          type="number"
+                          className="form-input"
+                          placeholder="0.00"
+                          value={entry.tds_amount}
+                          onChange={(e) => updatePayment(idx, 'tds_amount', e.target.value)}
+                          min="0"
+                          step="0.01"
+                          style={{ fontSize: 13, padding: '6px 8px' }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                        <button
+                          type="button"
+                          className="btn-icon"
+                          onClick={() => removePayment(idx)}
+                          style={{ color: 'var(--accent-red)', padding: 4 }}
+                          title="Remove">
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Summary */}
+                <div style={{
+                  padding: 12,
+                  borderRadius: 8,
+                  background: 'var(--bg-tertiary, rgba(0,0,0,0.03))',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span>Total Received</span>
+                    <span style={{ fontWeight: 600 }}>₹{totalReceived.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span>Total TDS</span>
+                    <span style={{ fontWeight: 600, color: 'var(--accent-amber)' }}>₹{totalTds.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between', fontSize: 14,
+                    fontWeight: 700, paddingTop: 6, borderTop: '1px solid var(--border-color, #ddd)',
+                    color: remainingBalance > 0.01 ? 'var(--accent-red)' : 'var(--accent-green, #2E5E4E)',
+                  }}>
+                    <span>Remaining Balance</span>
+                    <span>₹{remainingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', padding: 16 }}>
+                No payments recorded yet. Click "+ Add Payment" to record a payment.
+              </p>
+            )}
+          </div>
+        )}
         {/* Notes */}
         <div className="card" style={{ marginBottom: 24 }}>
           <div className="form-group" style={{ marginBottom: 0 }}>
