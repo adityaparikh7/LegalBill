@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { HashRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 import Dashboard from './pages/Dashboard';
 import Invoices from './pages/Invoices';
@@ -22,7 +22,7 @@ function App() {
 
   return (
     <ToastContext.Provider value={{ addToast }}>
-      <BrowserRouter>
+      <HashRouter>
         <div className="app-layout">
           {/* Mobile Header */}
           <div className="mobile-header">
@@ -98,7 +98,7 @@ function App() {
             </div>
           ))}
         </div>
-      </BrowserRouter>
+      </HashRouter>
     </ToastContext.Provider>
   );
 }
