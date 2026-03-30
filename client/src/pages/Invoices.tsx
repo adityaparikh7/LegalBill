@@ -294,50 +294,50 @@ export default function Invoices() {
               {filtered.map(inv => {
                 const balance = inv.total - (inv.amount_received || 0) - (inv.tds_amount || 0);
                 return (
-                <tr key={inv.id}>
-                  <td style={{ fontWeight: 600, color: 'var(--accent-blue)', cursor: 'pointer' }}
+                  <tr key={inv.id}>
+                    <td style={{ fontWeight: 600, color: 'var(--accent-blue)', cursor: 'pointer' }}
                       onClick={() => navigate(`/invoices/${inv.id}/edit`)}>
-                    {inv.invoice_number}
-                  </td>
-                  <td>{inv.client_name}</td>
-                  <td>{formatDate(inv.date)}</td>
-                  <td>{formatDate(inv.date_paid)}</td>
-                  <td style={{ fontWeight: 600 }}>{formatCurrency(inv.total)}</td>
-                  <td>{inv.amount_received ? formatCurrency(inv.amount_received) : '—'}</td>
-                  <td>{inv.tds_amount ? formatCurrency(inv.tds_amount) : '—'}</td>
-                  <td style={{
-                    fontWeight: 600,
-                    color: balance > 0.01 ? 'var(--accent-red)' : 'var(--accent-green, #2E5E4E)',
-                  }}>
-                    {inv.amount_received || inv.tds_amount ? formatCurrency(balance) : '—'}
-                  </td>
-                  <td>
-                    <select
-                      className="form-select"
-                      value={inv.status}
-                      onChange={e => handleStatusChange(inv, e.target.value)}
-                      style={{ width: 'auto', minWidth: 100, padding: '4px 28px 4px 10px', fontSize: 12 }}
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="sent">Sent</option>
-                      <option value="paid">Paid</option>
-                      <option value="overdue">Overdue</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </td>
-                  <td>
-                    <div className="btn-group">
-                      <button className="btn-icon" title="Edit" onClick={() => navigate(`/invoices/${inv.id}/edit`)}>✍️</button>
-                      <button className="btn-icon" title="PDF" onClick={() => downloadPDF(inv.id, inv.invoice_number)}>PDF</button>
-                      <button className="btn-icon" title="Excel" onClick={() => downloadExcel(inv.id, inv.invoice_number)}>Excel</button>
-                      <button className="btn-icon" title="Send Email" onClick={() => handleSend(inv.id)}>✉️</button>
-                      {(inv.status === 'sent' || inv.status === 'overdue') && (
+                      {inv.invoice_number}
+                    </td>
+                    <td>{inv.client_name}</td>
+                    <td>{formatDate(inv.date)}</td>
+                    <td>{formatDate(inv.date_paid)}</td>
+                    <td style={{ fontWeight: 600 }}>{formatCurrency(inv.total)}</td>
+                    <td>{inv.amount_received ? formatCurrency(inv.amount_received) : '—'}</td>
+                    <td>{inv.tds_amount ? formatCurrency(inv.tds_amount) : '—'}</td>
+                    <td style={{
+                      fontWeight: 600,
+                      color: balance > 0.01 ? 'var(--accent-red)' : 'var(--accent-green, #2E5E4E)',
+                    }}>
+                      {inv.amount_received || inv.tds_amount ? formatCurrency(balance) : '—'}
+                    </td>
+                    <td>
+                      <select
+                        className="form-select"
+                        value={inv.status}
+                        onChange={e => handleStatusChange(inv, e.target.value)}
+                        style={{ width: 'auto', minWidth: 100, padding: '4px 28px 4px 10px', fontSize: 12 }}
+                      >
+                        <option value="draft">Draft</option>
+                        <option value="sent">Sent</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </td>
+                    <td>
+                      <div className="btn-group">
+                        <button className="btn-icon" title="Edit" onClick={() => navigate(`/invoices/${inv.id}/edit`)}>✍️</button>
+                        <button className="btn-icon" title="PDF" onClick={() => downloadPDF(inv.id, inv.invoice_number)}>PDF</button>
+                        <button className="btn-icon" title="Excel" onClick={() => downloadExcel(inv.id, inv.invoice_number)}>Excel</button>
+                        <button className="btn-icon" title="Send Email" onClick={() => handleSend(inv.id)}>✉️</button>
+                        {(inv.status === 'sent' || inv.status === 'overdue') && (
                         <button className="btn-icon" title="Send Reminder" onClick={() => handleRemind(inv.id)}>🔔</button>
                       )}
-                      <button className="btn-icon" title="Delete" onClick={() => handleDelete(inv.id)} style={{ color: 'var(--accent-red)' }}>🗑️</button>
-                    </div>
-                  </td>
-                </tr>
+                        <button className="btn-icon" title="Delete" onClick={() => handleDelete(inv.id)} style={{ color: 'var(--accent-red)' }}>🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>

@@ -1,4 +1,6 @@
-const API_BASE = '/api';
+// When running in Electron (file:// protocol), API calls need absolute URL
+const isElectron = typeof window !== 'undefined' && window.location.protocol === 'file:';
+const API_BASE = isElectron ? 'http://localhost:3000/api' : '/api';
 export interface Client {
   id: number;
   name: string;

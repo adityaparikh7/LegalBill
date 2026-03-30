@@ -1,0 +1,61 @@
+appId: com.lexledger.app
+productName: LexLedger
+
+directories:
+  output: dist-electron
+  buildResources: build
+
+mac:
+  category: public.app-category.business
+  identity: null
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        # - x64
+    # - target: zip
+    #   arch:
+    #     - arm64
+    #     - x64
+  icon: build/icon.icns
+  darkModeSupport: true
+
+# Files to include in the app.asar
+files:
+  - "package.json"
+  - "electron/dist/**/*"
+
+# Extra resources outside of asar (not packed, accessible via process.resourcesPath)
+extraResources:
+  # Compiled server code + dependencies
+  - from: "server/dist"
+    to: "server/dist"
+    filter:
+      - "**/*"
+  - from: "server/node_modules"
+    to: "server/node_modules"
+    filter:
+      - "**/*"
+  - from: "server/package.json"
+    to: "server/package.json"
+  # HTML template for PDF generation
+  - from: "server/src/services/memo-template.html"
+    to: "server/dist/services/memo-template.html"
+  # Built React client
+  - from: "client/dist"
+    to: "client/dist"
+    filter:
+      - "**/*"
+  # Puppeteer Chrome binary
+  - from: "puppeteer-cache"
+    to: "puppeteer-cache"
+    filter:
+      - "**/*"
+
+# Don't pack native modules into asar (they won't work from inside it)
+asar: true
+asarUnpack:
+  - "**/*.node"
+
+# Rebuild native modules for Electron
+npmRebuild: false

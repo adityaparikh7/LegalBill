@@ -3,13 +3,19 @@
 LegalBill is a full-stack legal invoicing and billing management application designed to streamline client and invoice tracking. The application provides an intuitive dashboard, client management, and detailed invoice generation features. It can automatically generate invoices in PDF and Excel formats and includes email capabilities.
 
 ## Features
+- **Desktop Application**: Packaged as a standalone macOS Electron app for offline and local use.
 - **Dashboard**: Track overall revenue, outstanding invoices, and billing metrics.
 - **Client Management**: Add and manage client details.
-- **Invoice Generation**: Create, view, and manage invoices natively.
-- **Export Options**: Export invoices to beautifully formatted PDFs and Excel spreadsheets.
+- **Invoice Generation**: Create, view, and manage invoices natively, with redesigned and meticulously styled PDF and Excel invoice formats.
+- **Payment Tracking**: Track multiple partial payments per invoice, featuring auto-calculated and editable TDS amounts, alongside real-time balance tracking.
+- **Export Options**: Export individual beautifully formatted PDFs and Excel spreadsheets, or conditionally perform bulk exports of invoices for custom time periods.
 - **Email Service**: Send invoices and memos securely via email.
 
 ## Tech Stack
+**Desktop**:
+- Framework: Electron
+- Bundler: `electron-builder`
+
 **Frontend**:
 - UI: React (v19)
 - Routing: React Router
@@ -60,12 +66,19 @@ To start the production server:
 npm run start
 ```
 
----
+### 5. Building the Desktop App (Electron)
+To build the standalone macOS Electron desktop application:
+```bash
+npm run electron:build
+npx electron-builder --mac
+```
 
+> **Note on Native Dependencies:** When switching between running the local Node.js development server and building the Electron app, you might encounter an ABI mismatch error for `better-sqlite3`. 
+> - Run `npm rebuild` in the `server` directory when returning to local web development.
+> - Run `npx electron-builder install-app-deps` in the root directory when preparing to build the Electron app.
 ## Future Work
 
 *Add any future enhancements, bug fixes, or upcoming features below.*
 
-- [ ] 
-- [ ] 
-- [ ] 
+- Mail and reminders support
+- Windows support

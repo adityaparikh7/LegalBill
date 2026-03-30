@@ -7,7 +7,7 @@ import { sendInvoiceEmail, sendReminderEmail } from '../services/emailService';
 import path from 'path';
 import fs from 'fs';
 const router = Router();
-const COPIES_DIR = path.join(__dirname, '..', '..', '..', 'copies');
+const COPIES_DIR = process.env.COPIES_PATH || path.join(__dirname, '..', '..', '..', 'copies');
 if (!fs.existsSync(COPIES_DIR)) {
   fs.mkdirSync(COPIES_DIR, { recursive: true });
 }

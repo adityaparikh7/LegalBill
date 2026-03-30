@@ -10,9 +10,15 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-electron
 copies
 data
 *.local
+
+# Electron
+electron/dist
+puppeteer-cache
+build/*.icns
 
 # Editor directories and files
 .vscode/*
