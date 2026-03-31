@@ -15,6 +15,10 @@ export interface FirmProfile {
   pan_number: string;
   signature_name: string;
   signature_full: string;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_user: string;
+  smtp_pass: string;
   updated_at: string;
 }
 
@@ -35,6 +39,10 @@ router.get('/firm-profile', (_req: Request, res: Response) => {
         pan_number: '',
         signature_name: '',
         signature_full: '',
+        smtp_host: '',
+        smtp_port: 587,
+        smtp_user: '',
+        smtp_pass: '',
       });
     }
     res.json(profile);
@@ -58,6 +66,10 @@ router.put('/firm-profile', (req: Request, res: Response) => {
       pan_number,
       signature_name,
       signature_full,
+      smtp_host,
+      smtp_port,
+      smtp_user,
+      smtp_pass,
     } = req.body;
 
     db.prepare(`
@@ -73,6 +85,10 @@ router.put('/firm-profile', (req: Request, res: Response) => {
         pan_number = ?,
         signature_name = ?,
         signature_full = ?,
+        smtp_host = ?,
+        smtp_port = ?,
+        smtp_user = ?,
+        smtp_pass = ?,
         updated_at = datetime('now')
       WHERE id = 1
     `).run(
@@ -87,6 +103,10 @@ router.put('/firm-profile', (req: Request, res: Response) => {
       pan_number ?? '',
       signature_name ?? '',
       signature_full ?? '',
+      smtp_host ?? '',
+      smtp_port ?? 587,
+      smtp_user ?? '',
+      smtp_pass ?? ''
     );
 
     const updated = db.prepare('SELECT * FROM firm_profile WHERE id = 1').get();
@@ -111,6 +131,10 @@ export function getFirmProfile(): FirmProfile {
     pan_number: '',
     signature_name: '',
     signature_full: '',
+    smtp_host: '',
+    smtp_port: 587,
+    smtp_user: '',
+    smtp_pass: '',
     updated_at: '',
   };
 }

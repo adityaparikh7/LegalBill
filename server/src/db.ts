@@ -94,6 +94,10 @@ export function initDatabase(): void {
       pan_number TEXT NOT NULL DEFAULT '',
       signature_name TEXT NOT NULL DEFAULT '',
       signature_full TEXT NOT NULL DEFAULT '',
+      smtp_host TEXT NOT NULL DEFAULT '',
+      smtp_port INTEGER NOT NULL DEFAULT 587,
+      smtp_user TEXT NOT NULL DEFAULT '',
+      smtp_pass TEXT NOT NULL DEFAULT '',
       updated_at TEXT DEFAULT (datetime('now'))
     );
 
@@ -139,6 +143,21 @@ export function initDatabase(): void {
       FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
     );
   `);
+
+  // Migration: add SMTP details to firm_profile
+  const smtpColumns = [
+    { name: 'smtp_host', type: 'TEXT NOT NULL DEFAULT ""' },
+    { name: 'smtp_port', type: 'INTEGER NOT NULL DEFAULT 587' },
+    { name: 'smtp_user', type: 'TEXT NOT NULL DEFAULT ""' },
+    { name: 'smtp_pass', type: 'TEXT NOT NULL DEFAULT ""' }
+  ];
+  for (const col of smtpColumns) {
+    try {
+      db.exec(`ALTER TABLE firm_profile ADD COLUMN ${col.name} ${col.type}`);
+    } catch (_) {
+      // Column already exists — ignore
+    }
+  }
 }
 
 export function generateInvoiceNumber(invoiceDateStr?: string): string {

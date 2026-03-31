@@ -85,6 +85,10 @@ export interface FirmProfile {
   pan_number: string;
   signature_name: string;
   signature_full: string;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_user: string;
+  smtp_pass: string;
 }
 async function request(url: string, options?: RequestInit) {
   const res = await fetch(`${API_BASE}${url}`, {

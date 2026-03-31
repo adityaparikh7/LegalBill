@@ -14,6 +14,10 @@ const EMPTY_PROFILE: FirmProfile = {
   pan_number: '',
   signature_name: '',
   signature_full: '',
+  smtp_host: '',
+  smtp_port: 587,
+  smtp_user: '',
+  smtp_pass: '',
 };
 
 export default function Settings() {
@@ -39,7 +43,7 @@ export default function Settings() {
     setHasChanges(changed);
   }, [profile, savedProfile]);
 
-  const handleChange = (field: keyof FirmProfile, value: string) => {
+  const handleChange = (field: keyof FirmProfile, value: string | number) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -257,29 +261,58 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Email Configuration (kept from before) */}
+          {/* Email Configuration */}
           <div className="card" style={{ marginBottom: 24 }}>
             <div className="settings-section" style={{ marginBottom: 0 }}>
               <h3 className="section-title">📧 Email Configuration</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 16 }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 16, marginTop: -8 }}>
                 Configure your SMTP settings to send invoices and reminders via email.
-                Set the following environment variables in your <code style={{ background: 'var(--bg-glass)', padding: '2px 6px', borderRadius: 4 }}>. env</code> file:
               </p>
-              <div style={{
-                background: 'var(--bg-glass)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                padding: 20,
-                fontFamily: 'monospace',
-                fontSize: 13,
-                lineHeight: 2,
-                color: 'var(--text-secondary)',
-              }}>
-                <div><span style={{ color: 'var(--accent-blue)' }}>SMTP_HOST</span>=smtp.gmail.com</div>
-                <div><span style={{ color: 'var(--accent-blue)' }}>SMTP_PORT</span>=587</div>
-                <div><span style={{ color: 'var(--accent-blue)' }}>SMTP_USER</span>=your-email@gmail.com</div>
-                <div><span style={{ color: 'var(--accent-blue)' }}>SMTP_PASS</span>=your-app-password</div>
-                <div><span style={{ color: 'var(--accent-blue)' }}>SMTP_FROM</span>=billing@yourfirm.com</div>
+              <div style={{ display: 'grid', gap: 16 }}>
+                <div className="form-row">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">SMTP Host</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. smtp.gmail.com"
+                      value={profile.smtp_host}
+                      onChange={(e) => handleChange('smtp_host', e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">SMTP Port</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="e.g. 587"
+                      value={profile.smtp_port}
+                      onChange={(e) => handleChange('smtp_port', parseInt(e.target.value, 10) || 587)}
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">SMTP Username (Email)</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. your-email@gmail.com"
+                      value={profile.smtp_user}
+                      onChange={(e) => handleChange('smtp_user', e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">SMTP Password (App Password)</label>
+                    <input
+                      type="password"
+                      className="form-input"
+                      placeholder="e.g. abcdefghijklmnop"
+                      value={profile.smtp_pass}
+                      onChange={(e) => handleChange('smtp_pass', e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 12 }}>
                 💡 If no SMTP is configured, emails are sent to <a href="https://ethereal.email" target="_blank" rel="noopener" style={{ color: 'var(--accent-blue)' }}>Ethereal</a> test accounts for preview.
