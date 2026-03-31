@@ -5,6 +5,8 @@ import {
   type Client, type LineItem, type Payment
 } from '../api';
 import { useToast } from '../context/ToastContext';
+import { Banknote, X, Loader2, Save, Check, Plus } from 'lucide-react';
+
 interface FormLineItem {
   description: string;
   hours: string;
@@ -469,7 +471,7 @@ export default function InvoiceForm() {
                   onClick={() => removeLineItem(idx)}
                   style={{ color: "var(--accent-red)", alignSelf: "center" }}
                   title="Remove">
-                  ✕
+                  <X size={18} />
                 </button>
               </div>
             ))}
@@ -525,8 +527,8 @@ export default function InvoiceForm() {
         {isEditing && (
           <div className="card" style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 600 }}>
-                💰 Payment Details
+              <h3 style={{ fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Banknote size={20} /> Payment Details
               </h3>
               <button
                 type="button"
@@ -591,7 +593,7 @@ export default function InvoiceForm() {
                           onClick={() => removePayment(idx)}
                           style={{ color: 'var(--accent-red)', padding: 4 }}
                           title="Remove">
-                          ✕
+                          <X size={18} />
                         </button>
                       </div>
                     </div>
@@ -651,10 +653,10 @@ export default function InvoiceForm() {
           </button>
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving
-              ? "⏳ Saving..."
+              ? <><Loader2 size={16} className="spinner" style={{ borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'white', width: 16, height: 16 }} /> Saving...</>
               : isEditing
-                ? "💾 Update Invoice"
-                : "✅ Create Invoice"}
+                ? <><Save size={16} /> Update Invoice</>
+                : <><Check size={16} /> Create Invoice</>}
           </button>
         </div>
       </form>
@@ -668,9 +670,10 @@ export default function InvoiceForm() {
             <div className="modal-header">
               <h3 className="modal-title">Add Client</h3>
               <button
+                type="button"
                 className="btn-icon"
                 onClick={() => setShowClientModal(false)}>
-                ✕
+                <X size={20} />
               </button>
             </div>
             <form onSubmit={handleCreateClient}>
@@ -730,7 +733,7 @@ export default function InvoiceForm() {
                   type="submit"
                   className="btn btn-primary"
                   disabled={creatingClient}>
-                  {creatingClient ? "⏳ Saving..." : "+ Add Client"}
+                  {creatingClient ? <><Loader2 size={16} className="spinner" style={{ borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'white', width: 16, height: 16 }} /> Saving...</> : <><Plus size={16} /> Add Client</>}
                 </button>
               </div>
             </form>

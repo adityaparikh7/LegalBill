@@ -117,7 +117,7 @@ export default function Settings() {
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. Advocate John Doe"
+                    placeholder="e.g. Subramaniam & Associates"
                     value={profile.firm_name}
                     onChange={(e) => handleChange('firm_name', e.target.value)}
                   />
@@ -138,7 +138,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. +91 98201 22460"
+                      placeholder="e.g. +91 9876543210"
                       value={profile.firm_phone}
                       onChange={(e) => handleChange('firm_phone', e.target.value)}
                     />
@@ -172,7 +172,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. John Doe"
+                      placeholder="e.g. Subramaniam Rao"
                       value={profile.bank_account_name}
                       onChange={(e) => handleChange('bank_account_name', e.target.value)}
                     />
@@ -182,7 +182,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. ICICI Bank, Prabhadevi Branch, Mumbai"
+                      placeholder="e.g. SBI Bank"
                       value={profile.bank_name}
                       onChange={(e) => handleChange('bank_name', e.target.value)}
                     />
@@ -204,7 +204,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. ICIC0000057"
+                      placeholder="e.g. SBIN0000057"
                       value={profile.bank_ifsc}
                       onChange={(e) => handleChange('bank_ifsc', e.target.value)}
                     />
@@ -237,7 +237,7 @@ export default function Settings() {
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. JDoe"
+                    placeholder="e.g. AdvSRao"
                     value={profile.signature_name}
                     onChange={(e) => handleChange('signature_name', e.target.value)}
                   />
@@ -250,7 +250,7 @@ export default function Settings() {
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. John H. Doe, Advocate"
+                    placeholder="e.g. Subramaniam Rao, Advocate"
                     value={profile.signature_full}
                     onChange={(e) => handleChange('signature_full', e.target.value)}
                   />

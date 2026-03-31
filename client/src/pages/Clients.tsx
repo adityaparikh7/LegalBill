@@ -4,6 +4,8 @@ import {
   type Client
 } from '../api';
 import { useToast } from '../context/ToastContext';
+import { Search, Edit2, Trash2, Users, X, Save, Plus } from 'lucide-react';
+
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,13 +91,16 @@ export default function Clients() {
       </div>
       {/* Search */}
       <div className="filter-bar" style={{ marginBottom: 24 }}>
-        <input
-          className="form-input"
-          placeholder="🔍 Search clients..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          style={{ width: 300 }}
-        />
+        <div style={{ position: 'relative' }}>
+          <Search size={16} style={{ position: 'absolute', left: 12, top: 10, color: 'var(--text-muted)' }} />
+          <input
+            className="form-input"
+            placeholder="Search clients..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{ width: 300, paddingLeft: 36 }}
+          />
+        </div>
       </div>
       {/* Client table */}
       <div className="table-container">
@@ -121,8 +126,8 @@ export default function Clients() {
                   <td>{new Date(client.created_at).toLocaleDateString()}</td>
                   <td>
                     <div className="btn-group">
-                      <button className="btn-icon" title="Edit" onClick={() => openEditModal(client)}>✏️</button>
-                      <button className="btn-icon" title="Delete" onClick={() => handleDelete(client.id)} style={{ color: 'var(--accent-red)' }}>🗑️</button>
+                      <button className="btn-icon btn-icon-blue" title="Edit" onClick={() => openEditModal(client)}><Edit2 size={18} /></button>
+                      <button className="btn-icon btn-icon-red" title="Delete" onClick={() => handleDelete(client.id)}><Trash2 size={18} /></button>
                     </div>
                   </td>
                 </tr>
@@ -131,7 +136,7 @@ export default function Clients() {
           </table>
         ) : (
           <div className="empty-state">
-            <div className="empty-icon">👥</div>
+            <div className="empty-icon"><Users size={48} /></div>
             <div className="empty-text">No clients found</div>
             <div className="empty-subtext">Add your first client to start creating invoices</div>
           </div>
@@ -143,7 +148,7 @@ export default function Clients() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">{editingClient ? 'Edit Client' : 'Add Client'}</h3>
-              <button className="btn-icon" onClick={() => setShowModal(false)}>✕</button>
+              <button type="button" className="btn-icon" onClick={() => setShowModal(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -191,7 +196,7 @@ export default function Clients() {
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingClient ? '💾 Update' : '+ Add Client'}
+                  {editingClient ? <><Save size={16} /> Update</> : <><Plus size={16} /> Add Client</>}
                 </button>
               </div>
             </form>

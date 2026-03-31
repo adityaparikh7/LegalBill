@@ -6,7 +6,7 @@ import {
   type Invoice, type Payment
 } from '../api';
 import { useToast } from '../context/ToastContext';
-import { Edit2, FileText, FileSpreadsheet, Send, Bell, Trash2, Search, BarChart2, X, Loader2, Check, Calendar, Download, FileDown } from 'lucide-react';
+import { Edit2, FileText, FileSpreadsheet, Send, Bell, Trash2, Search, BarChart2, X, Loader2, Check, Calendar, Download, FileDown, ArchiveRestoreIcon } from 'lucide-react';
 
 interface FormPayment {
   date: string;
@@ -273,7 +273,7 @@ export default function Invoices() {
           style={{ marginLeft: 'auto', gap: 6 }}
           id="export-records-btn"
         >
-          <BarChart2 size={16} /> Export Records
+          <ArchiveRestoreIcon size={16} /> Export Records
         </button>
       </div>
       {/* Invoice table */}
