@@ -379,11 +379,19 @@ export default function Settings() {
             <div className="settings-section" style={{ marginBottom: 0 }}>
               <h3 className="section-title">ℹ️ About</h3>
               <div style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.8 }}>
-                <p><strong>LexLedger</strong> v1.0.0</p>
+                <p><strong>LexLedger</strong> v1.1.0</p>
                 <p>A professional invoicing and billing tool designed for legal practices.</p>
-                <p style={{ marginTop: 12 }}>
-                  Features: Invoice generation (PDF & Excel) • Payment tracking • Email sending & reminders • Redundant copies • Auto invoice numbering
-                </p>
+                <div style={{ marginTop: 12 }}>
+                  <strong>Key Features:</strong>
+                  <ul style={{ paddingLeft: 20, margin: 0 }}>
+                    <li><strong>Standalone Desktop App:</strong> Native experience for macOS & Windows.</li>
+                    <li><strong>Flexible Invoicing:</strong> Generate professional PDF invoices with auto-numbering.</li>
+                    <li><strong>Payment Management:</strong> Advanced tracking for partial payments & TDS.</li>
+                    <li><strong>Bulk Export:</strong> Export invoice records to Excel for custom date ranges.</li>
+                    <li><strong>Customization:</strong> Fully editable firm profiles and integrated SMTP email.</li>
+                    <li><strong>Reliability:</strong> Offline access with automated redundant backups.</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
