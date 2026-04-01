@@ -1,6 +1,6 @@
-# LegalBill (LexLedger)
+# LexLedger
 
-LegalBill is a full-stack legal invoicing and billing management application designed to streamline client and invoice tracking. The application provides an intuitive dashboard, client management, and detailed invoice generation features. It can automatically generate invoices in PDF and Excel formats and includes email capabilities.
+LexLedger is a full-stack legal invoicing and billing management application designed to streamline client and invoice tracking. The application provides an intuitive dashboard, client management, and detailed invoice generation features. It can automatically generate invoices in PDF and Excel formats and includes email capabilities.
 
 ## Features
 - **Desktop Application**: Packaged as a standalone macOS Electron app for offline and local use.
