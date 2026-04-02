@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   getInvoices, deleteInvoice, updateInvoiceStatus,
   downloadPDF, downloadExcel, downloadExportExcel, sendInvoice, sendReminder,
@@ -18,7 +18,8 @@ export default function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const location = useLocation();
+  const [searchTerm, setSearchTerm] = useState(location.state?.clientName || '');
   const navigate = useNavigate();
   const { addToast } = useToast();
 
