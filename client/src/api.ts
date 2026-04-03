@@ -32,7 +32,7 @@ export interface Invoice {
   client_phone?: string | null;
   date: string;
   date_paid: string | null;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  status: 'draft' | 'sent' | 'paid' | 'unpaid' | 'cancelled';
   notes: string | null;
   case_name: string | null;
   case_party1_type: string | null;
@@ -64,9 +64,9 @@ export interface DashboardData {
     total_invoices: number;
     total_paid: number;
     total_outstanding: number;
-    total_overdue: number;
+    total_unpaid: number;
     paid_count: number;
-    overdue_count: number;
+    unpaid_count: number;
     draft_count: number;
     sent_count: number;
   };

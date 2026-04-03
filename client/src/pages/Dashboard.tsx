@@ -64,8 +64,8 @@ export default function Dashboard() {
         </div>
         <div className="stat-card red">
           <div className="stat-icon"><AlertTriangle size={28} /></div>
-          <div className="stat-value">{stats?.overdue_count || 0}</div>
-          <div className="stat-label">Overdue</div>
+          <div className="stat-value">{stats?.unpaid_count || 0}</div>
+          <div className="stat-label">Unpaid</div>
         </div>
         <div className="stat-card green">
           <div className="stat-icon"><Users size={28} /></div>

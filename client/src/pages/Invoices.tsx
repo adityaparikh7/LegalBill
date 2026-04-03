@@ -265,7 +265,7 @@ export default function Invoices() {
           <option value="draft">Draft</option>
           <option value="sent">Sent</option>
           <option value="paid">Paid</option>
-          <option value="overdue">Overdue</option>
+          <option value="unpaid">Unpaid</option>
           <option value="cancelled">Cancelled</option>
         </select>
         <button
@@ -326,7 +326,7 @@ export default function Invoices() {
                         <option value="draft">Draft</option>
                         <option value="sent">Sent</option>
                         <option value="paid">Paid</option>
-                        <option value="overdue">Overdue</option>
+                        <option value="unpaid">Unpaid</option>
                         <option value="cancelled">Cancelled</option>
                       </select>
                     </td>
@@ -344,7 +344,7 @@ export default function Invoices() {
                         <button className="btn-icon btn-icon-amber" title="Send via Email" onClick={() => handleSend(inv.id)}>
                           <Send size={18} />
                         </button>
-                        {(inv.status === 'sent' || inv.status === 'overdue') && (
+                        {(inv.status === 'sent' || inv.status === 'unpaid') && (
                         <button className="btn-icon btn-icon-amber" title="Send Reminder" onClick={() => handleRemind(inv.id)}>
                           <Bell size={18} />
                         </button>
