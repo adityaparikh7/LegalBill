@@ -140,12 +140,21 @@ export const updateInvoiceStatus = (id: number, status: string, payments?: Payme
 export const updateInvoicePayments = (id: number, payments: Payment[]): Promise<Invoice> =>
   request(`/invoices/${id}/payments`, { method: 'PUT', body: JSON.stringify({ payments }) });
 // Downloads
-export const downloadPDF = async (id: number, invoiceNumber: string) => {
+function formatDateDMY(isoDate: string): string {
+  const parts = isoDate.split('T')[0].split('-');
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  return isoDate;
+}
+export const downloadPDF = async (id: number, invoiceNumber: string, clientName: string, date: string) => {
   const blob = await request(`/invoices/${id}/pdf`);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${invoiceNumber}.pdf`;
+  const formattedDate = formatDateDMY(date);
+  const safeName = `Fee Memo No- ${invoiceNumber} ${clientName} ${formattedDate}`
+    .replace(/[/\\:*?"<>|]/g, '-')
+    .trim();
+  a.download = `${safeName}.pdf`;
   a.click();
   URL.revokeObjectURL(url);
 };

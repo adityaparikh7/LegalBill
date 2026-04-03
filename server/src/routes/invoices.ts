@@ -12,6 +12,19 @@ const COPIES_DIR = process.env.COPIES_PATH || path.join(__dirname, '..', '..', '
 if (!fs.existsSync(COPIES_DIR)) {
   fs.mkdirSync(COPIES_DIR, { recursive: true });
 }
+
+/** Builds the standardised fee-memo base name (no extension).
+ *  Format: "Fee Memo No: {invoice_number} {client_name} {dd-mm-yyyy}"
+ *  Special characters unsafe for filenames are stripped/replaced. */
+function buildFeeMemoName(invoiceNumber: string, clientName: string, date: string): string {
+  // Reformat yyyy-mm-dd → dd-mm-yyyy
+  const parts = date.split('T')[0].split('-');
+  const formattedDate = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : date;
+  const safeName = `Fee Memo No- ${invoiceNumber} ${clientName} ${formattedDate}`
+    .replace(/[\/\\:*?"<>|]/g, '-') // replace chars illegal on Windows/macOS
+    .trim();
+  return safeName;
+}
 interface LineItem {
   id?: number;
   description: string;
@@ -165,8 +178,12 @@ router.get('/export-pdfs', async (req: Request, res: Response) => {
     for (const invoice of invoices) {
       const lineItems = db.prepare('SELECT * FROM line_items WHERE invoice_id = ?').all(invoice.id) as any[];
       const pdfBuffer = await generatePDF(invoice, lineItems);
-      const safeInvoiceNumber = invoice.invoice_number.replace(/[\/\\]/g, '-');
-      archive.append(pdfBuffer, { name: `${safeInvoiceNumber}.pdf` });
+      const entryName = buildFeeMemoName(
+        invoice.invoice_number,
+        invoice.client_name || 'Client',
+        invoice.date || ''
+      );
+      archive.append(pdfBuffer, { name: `${entryName}.pdf` });
     }
 
     await archive.finalize();
@@ -395,15 +412,19 @@ router.get('/:id/pdf', async (req: Request, res: Response) => {
     // Generate PDF
     const pdfBuffer = await generatePDF(invoice, lineItems);
     // Save redundant copy
-    const safeInvoiceNumber = invoice.invoice_number.replace(/[\/\\]/g, '-');
-    const fileName = `${safeInvoiceNumber}_${Date.now()}.pdf`;
+    const feeMemoName = buildFeeMemoName(
+      invoice.invoice_number,
+      invoice.client_name || 'Client',
+      invoice.date || ''
+    );
+    const fileName = `${feeMemoName}_${Date.now()}.pdf`;
     const filePath = path.join(COPIES_DIR, fileName);
     fs.writeFileSync(filePath, pdfBuffer);
     db.prepare(
       'INSERT INTO invoice_copies (invoice_id, file_type, file_name, file_path) VALUES (?, ?, ?, ?)'
     ).run(invoice.id, 'pdf', fileName, filePath);
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${invoice.invoice_number}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${feeMemoName}.pdf"`);
     res.send(pdfBuffer);
   } catch (err: any) {
     console.error('Error generating invoice PDF:', err);

@@ -370,7 +370,7 @@ export default function Invoices() {
                         <button className="btn-icon btn-icon-blue" title="Edit" onClick={() => navigate(`/invoices/${inv.id}/edit`)}>
                           <Edit2 size={18} />
                         </button>
-                        <button className="btn-icon btn-icon-green" title="Download PDF" onClick={() => downloadPDF(inv.id, inv.invoice_number)}>
+                        <button className="btn-icon btn-icon-green" title="Download PDF" onClick={() => downloadPDF(inv.id, inv.invoice_number, inv.client_name, inv.date)}>
                           <FileDown size={18} />
                         </button>
                         <button className="btn-icon btn-icon-green" title="Download Excel" onClick={() => downloadExcel(inv.id, inv.invoice_number)}>

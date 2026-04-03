@@ -172,7 +172,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. Subramaniam Rao"
+                      placeholder="Your name here"
                       value={profile.bank_account_name}
                       onChange={(e) => handleChange('bank_account_name', e.target.value)}
                     />
@@ -182,7 +182,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. SBI Bank"
+                      placeholder="Bank name here"
                       value={profile.bank_name}
                       onChange={(e) => handleChange('bank_name', e.target.value)}
                     />
@@ -194,7 +194,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. 005701061521"
+                      placeholder="Acc number here"
                       value={profile.bank_account_number}
                       onChange={(e) => handleChange('bank_account_number', e.target.value)}
                     />
@@ -204,7 +204,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. SBIN0000057"
+                      placeholder="IFSC code here"
                       value={profile.bank_ifsc}
                       onChange={(e) => handleChange('bank_ifsc', e.target.value)}
                     />
@@ -214,7 +214,7 @@ export default function Settings() {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="e.g. ABCDE 1234F"
+                      placeholder="PAN number here"
                       value={profile.pan_number}
                       onChange={(e) => handleChange('pan_number', e.target.value)}
                     />
@@ -237,7 +237,7 @@ export default function Settings() {
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. AdvSRao"
+                    placeholder="Signature name here eg: V.S.Vasani"
                     value={profile.signature_name}
                     onChange={(e) => handleChange('signature_name', e.target.value)}
                   />
@@ -250,7 +250,7 @@ export default function Settings() {
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. Subramaniam Rao, Advocate"
+                    placeholder="Full name and title here"
                     value={profile.signature_full}
                     onChange={(e) => handleChange('signature_full', e.target.value)}
                   />
